@@ -1,0 +1,5 @@
+cairosvg
+py-rolldice
+aiohttp
+regex
+discord
