@@ -18,10 +18,11 @@ import sys
 import chessgame
 import initiative
 import rolldice
+import trueskill
 from discord import *
 from discord.ext.commands import *
 
-defaultconfig = '''
+default_config = '''
 prefix = ('f?', 'f!', 'F?', 'F!')
 token ='DISCORD TOKEN HERE'
 clever_api_user = 'CLEVERBOT USER HERE'
@@ -32,8 +33,8 @@ clever_api_key = 'CLEVERBOT KEY HERE'
 try:
     import config
 except ImportError:
-    with open('onfig.py', 'w') as f:
-        f.write(defaultconfig)
+    with open('config.py', 'w') as f:
+        f.write(default_config)
     sys.exit()
 
 class ProperHelp(HelpFormatter):
@@ -120,7 +121,6 @@ def format_large(number):
     a = '%E' % number
     return a.split('E')[0].rstrip('0').rstrip('.') + 'E' + a.split('E')[1]
 
-
 async def update_data(users, user):
     """
     Used in the leveling system. If a user is not already included in the users file, add them.
@@ -129,10 +129,12 @@ async def update_data(users, user):
     :param user: discord.User to add
     :return:
     """
+    users_rating = trueskill.Rating()
     if str(user.id) not in users and not user.bot:
         users[str(user.id)] = {}
         users[str(user.id)]['experience'] = 0
         users[str(user.id)]['level'] = 1
+        users[str(user.id)]['trueskill'] = {'mu': users_rating.mu, 'sigma': users_rating.sigma}
 
 
 async def add_xp(users, user, amount):
@@ -216,16 +218,6 @@ async def on_message(message):
     """
     if message.author.bot:
         return
-    names = ['xX_PussyDestroyer_CoDKid_Xx',
-             'XxX_Sp4Rt4nTA-k3r69_XxX',
-             'crackmonkey69',
-             'DrAgOnBlaDe69',
-             'pimp.daddy.420@thotmail.com',
-             'yonkerslady@yahoo.com',
-             ]
-    match = regex.match(r"([Ii]['\"`]*[Mm])([a-zA-Z0-9 \t'\".,]+)", message.content)
-    if not match is None:
-        await message.channel.send("Hi {0}, I'm {1}".format(match[2], random.choice(names)))
 
     if 'seduce' in message.content.lower():
         await message.channel.send('Seduce me!', file=File('seduce.png'))
@@ -403,7 +395,7 @@ async def white(context):
     :param context: Command context
     :return:
     """
-    game_timed_out = False
+    timed_out = False
 
     user = context.message.author
 
@@ -425,7 +417,7 @@ async def white(context):
                 movestr = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=300)
             except asyncio.TimeoutError:
                 end = True
-                game_timed_out = True
+                timed_out = True
                 break
             if movestr.content.lower() == 'end':
                 end = True
@@ -455,7 +447,7 @@ async def white(context):
         if chess_game.is_finished():
             break
 
-    if game_timed_out:
+    if timed_out:
         await context.send('Game timed out. Next time please make a move within 5 minutes.')
 
     date_string = f"{datetime.date.today():%Y.%m.%d}"
@@ -471,7 +463,7 @@ async def white(context):
 
     await context.send(embed=embed)
 
-    game_timed_out = False
+    timed_out = False
 
     chess_game.engine.kill()
 
@@ -488,7 +480,7 @@ async def black(context):
     :param context: Command context
     :return:
     """
-    game_timed_out = False
+    timed_out = False
 
     user = context.message.author
 
@@ -520,7 +512,7 @@ async def black(context):
                 movestr = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=300)
             except asyncio.TimeoutError:
                 end = True
-                game_timed_out = True
+                timed_out = True
                 break
             if movestr.content.lower() == 'end':
                 end = True
@@ -540,7 +532,7 @@ async def black(context):
         if chess_game.is_finished():
             break
 
-    if game_timed_out:
+    if timed_out:
         await context.send('Game timed out. Next time please make a move within 5 minutes.')
 
     date_string = f"{datetime.date.today():%Y.%m.%d}"
@@ -552,6 +544,125 @@ async def black(context):
 
     embed.add_field(name="Human Player: Black", value=context.author.display_name)
     embed.add_field(name="Bot Player: White", value="Fin Bot")
+    embed.add_field(name="Final Score", value=chess_game.result())
+
+    await context.send(embed=embed)
+
+    chess_game.engine.kill()
+
+@cooldown(2, 60, BucketType.user)
+@client.command(description='Challenge the mentioned user to a game of chess. To end the game, type \'end\'.',
+                brief='Challenge a person to a game of chess')
+async def challenge(context, white: Member):
+    timed_out = False
+
+    black = context.author
+
+    await context.send('%s, %s has challenged you to a chess game!' % (white.mention, black.mention))
+
+    with open('users.json') as f:
+        users = json.load(f)
+
+    if str(white.id) not in users:
+        await update_data(users, white)
+    elif str(black.id) not in users:
+        await update_data(users, black)
+
+    white_rating = trueskill.Rating(**users[str(white.id)]['trueskill'])
+
+    black_rating = trueskill.Rating(**users[str(black.id)]['trueskill'])
+
+    chess_game = chessgame.ChessGame()
+
+    file = chess_game.get_png(chessgame.chess.WHITE)
+    file = io.BytesIO(file)
+    file = File(file, filename='board.png')
+    await context.send('Board:', file=file)
+
+    while True:
+        end = False
+
+        # White's move
+        while True:
+            await context.send('%s, please enter your move in UCI format (eg. e2e4)' % white.mention)
+            try:
+                move_str = await client.wait_for('message', check=lambda m: m.author == white, timeout=300)
+            except asyncio.TimeoutError:
+                end = True
+                timed_out = True
+                break
+            if move_str.content.lower() == 'end':
+                end = True
+                break
+            try:
+                chess_game.player_move(move_str.content.lower())
+                break
+            except chessgame.InvalidMoveException as e:
+                await context.send(str(e))
+        if end:
+            white_ended = True
+            break
+        await context.send(chess_game.generate_move_digest(white.display_name))
+        if chess_game.is_finished():
+            break
+
+        # Black's move
+        file = chess_game.get_png(chessgame.chess.BLACK)
+        file = io.BytesIO(file)
+        file = File(file, filename='board.png')
+        await context.send('Board:', file=file)
+        if chess_game.check():
+            await context.send('Black is in check!')
+        while True:
+            await context.send('%s, please enter your move in UCI format (eg. e2e4)' % black.mention)
+            try:
+                move_str = await client.wait_for('message', check=lambda m: m.author == black, timeout=300)
+            except asyncio.TimeoutError:
+                end = True
+                timed_out = True
+                break
+            if move_str.content.lower() == 'end':
+                end = True
+                break
+            try:
+                chess_game.player_move(move_str.content.lower())
+                break
+            except chessgame.InvalidMoveException as e:
+                await context.send(str(e))
+        if end:
+            black_ended = True
+            break
+        await context.send(chess_game.generate_move_digest(black.display_name))
+        if chess_game.is_finished():
+            break
+
+        file = chess_game.get_png(chessgame.chess.WHITE)
+        file = io.BytesIO(file)
+        file = File(file, filename='board.png')
+        await context.send('Board:', file=file)
+
+    if chess_game.result() == '1-0' or black_ended:
+        white_rating, black_rating = trueskill.rate_1vs1(white_rating, black_rating)
+    elif chess_game.result() == '0-1' or white_ended:
+        black_rating, white_rating = trueskill.rate_1vs1(black_rating, white_rating)
+
+    with open('users.json') as f:
+        users = json.load(f)
+        users[str(white.id)]['trueskill'] = {'mu': white_rating.mu, 'sigma': white_rating.sigma}
+        users[str(black.id)]['trueskill'] = {'mu': black_rating.mu, 'sigma': black_rating.sigma}
+
+    if timed_out:
+        await context.send('Game timed out. Next time please make a move within 5 minutes.')
+
+    date_string = f"{datetime.date.today():%Y.%m.%d}"
+    pgn = chess_game.get_pgn('Chess Game', 'Discord', date_string, white.display_name, black.display_name)
+
+    embed = Embed(title="Chess Game Results", colour=Colour(0xff00), description="```%s```" % pgn)
+
+    embed.set_author(name="Fin Bot", icon_url="https://tinyurl.com/y8p7a8px")
+
+    embed.add_field(name="White", value='%s\nRating: %0.3f' % (white.display_name, white_rating.mu))
+    embed.add_field(name="Black", value='%s\nRating: %0.3f' % (black.display_name, black_rating.mu))
     embed.add_field(name="Final Score", value=chess_game.result())
 
     await context.send(embed=embed)
@@ -616,6 +727,32 @@ async def initiative_command(context, *args):
         if timed_out:
             await context.send('Initiative tracking session timed out.')
 
+
+@client.command(description='Begin dice rolling mode. Until you type \'end\', all messages you type will be interpreted as dice rolls. All malformed dice rolls will be ignored.',
+                brief='Begin dice rolling mode.',
+                aliases=['diemode'])
+async def dicemode(context):
+    timed_out = False
+    await context.send('Beginning dice rolling mode...')
+    while True:
+        try:
+            msg = await client.wait_for('message', check=lambda m: m.author == context.author, timeout = 6000)
+        except asyncio.TimeoutError:
+            timed_out = True
+            break
+        else:
+            try:
+                result, explanation = rolldice.roll_dice(msg.content)
+            except:
+                if msg.content.lower() == 'end':
+                    await context.send('Exiting dice mode.')
+                    return
+                continue
+            else:
+                if len(explanation) > 300:
+                    await context.send('Result: %s\n```Explanation too long to display!```' % result)
+                else:
+                    await context.send('Result: %s.\n```%s```' % (result, explanation))
 
 
 print('Starting...')
