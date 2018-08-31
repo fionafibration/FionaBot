@@ -356,6 +356,32 @@ async def dice(context, *roll):
         else:
             await context.send('Result: %s.\n```%s```' % (result, explanation))
 
+@client.command(description='Begin dice rolling mode. Until you type \'end\', all messages you type will be interpreted as dice rolls. All malformed dice rolls will be ignored.',
+                brief='Begin dice rolling mode.',
+                aliases=['diemode'])
+async def dicemode(context):
+    timed_out = False
+    await context.send('Beginning dice rolling mode...')
+    while True:
+        try:
+            msg = await client.wait_for('message', check=lambda m: m.author == context.author, timeout = 6000)
+        except asyncio.TimeoutError:
+            timed_out = True
+            break
+        else:
+            try:
+                result, explanation = rolldice.roll_dice(msg.content)
+            except:
+                if msg.content.lower() == 'end':
+                    await context.send('Exiting dice mode.')
+                    return
+                continue
+            else:
+                if len(explanation) > 300:
+                    await context.send('Result: %s\n```Explanation too long to display!```' % result)
+                else:
+                    await context.send('Result: %s.\n```%s```' % (result, explanation))
+
 
 @client.group()
 async def chess(context):
@@ -726,33 +752,6 @@ async def initiative_command(context, *args):
                     return
         if timed_out:
             await context.send('Initiative tracking session timed out.')
-
-
-@client.command(description='Begin dice rolling mode. Until you type \'end\', all messages you type will be interpreted as dice rolls. All malformed dice rolls will be ignored.',
-                brief='Begin dice rolling mode.',
-                aliases=['diemode'])
-async def dicemode(context):
-    timed_out = False
-    await context.send('Beginning dice rolling mode...')
-    while True:
-        try:
-            msg = await client.wait_for('message', check=lambda m: m.author == context.author, timeout = 6000)
-        except asyncio.TimeoutError:
-            timed_out = True
-            break
-        else:
-            try:
-                result, explanation = rolldice.roll_dice(msg.content)
-            except:
-                if msg.content.lower() == 'end':
-                    await context.send('Exiting dice mode.')
-                    return
-                continue
-            else:
-                if len(explanation) > 300:
-                    await context.send('Result: %s\n```Explanation too long to display!```' % result)
-                else:
-                    await context.send('Result: %s.\n```%s```' % (result, explanation))
 
 
 print('Starting...')
