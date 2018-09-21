@@ -941,5 +941,25 @@ async def prune(context, amount: int=1):
     for message in await context.history(limit=amount).flatten():
         await message.delete()
 
+@client.command(description="Inspects the source code for a command. E.G. 'f?source challenge'",
+                brief="Inspect the source code for a command.")
+async def source(context, command):
+    """
+    Inspects the source code of a command
+
+    :param context: Command
+    :param command: Command to inspect
+    """
+    source = str(inspect.getsource(client.get_command(command).callback))
+    fmt = '```py\n' + source.replace('`', '\u200b`') + '\n```'
+    if len(fmt) > 2000:
+        async with context.session.post("https://hastebin.com/documents", data=source) as resp:
+            data = await resp.json()
+        key = data['key']
+        await context.send(f'Command source: <https://hastebin.com/{key}.py>')
+    else:
+        await context.send(fmt)
+
+
 sys.stdout.write('Starting...\n')
 client.run(config.token)
