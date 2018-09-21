@@ -14,11 +14,12 @@ import io
 import itertools
 import regex
 import inspect
-import sys
 import chessgame
 import initiative
 import rolldice
 import trueskill
+import sys
+import markovify
 from discord import *
 from discord.ext.commands import *
 
@@ -186,8 +187,8 @@ async def on_ready():
         await session.close()
     link = utils.oauth_url('464543446187769867', permissions=Permissions.all())
     await client.change_presence(activity=Game(name='f?help for help'))
-    print('Logged in as ' + client.user.display_name)
-    print('Invite URL:\n%s' % link)
+    sys.stdout.write('Logged in as ' + client.user.display_name + '\n')
+    sys.stdout.write(('Invite URL:\n%s' % link) + '\n')
 
 
 @client.event
@@ -224,6 +225,7 @@ async def on_message(message):
 
     if message.content.lower() == 'mirage':
         await message.channel.send('now dont get me started on the mirage 2000 hahah its so bad like wtf french the best plane they ever made was a flag blown away by the wind it works great actualy but the mirage is so ugly i dont enven now how it can even fly i know a friend is part of the raf he flew three (yes, 3) mirage and the worst was the deux mille i mean its a flying pankace and really how can a french plane work anyway they dont even now how cars work look at renault its so bad right so yes the mirage is pretty shitty right yeah')
+
     with open('users.json', 'r') as f:
         users = json.load(f)
 
@@ -355,6 +357,7 @@ async def dice(context, *roll):
             await context.send('Result: %s\n```Explanation too long to display!```' % result)
         else:
             await context.send('Result: %s.\n```%s```' % (result, explanation))
+
 
 @client.command(description='Begin dice rolling mode. Until you type \'end\', all messages you type will be interpreted as dice rolls. All malformed dice rolls will be ignored.',
                 brief='Begin dice rolling mode.',
@@ -754,5 +757,67 @@ async def initiative_command(context, *args):
             await context.send('Initiative tracking session timed out.')
 
 
-print('Starting...')
+@client.command(description="Attach a text file containing the markov text to be ingested. Takes 1 argument, the number of sentences to generate.",
+                brief="Markov chain text generation.")
+async def markov(context, num_sentences: int = 8):
+    file = context.message.attachments[0]
+    if file.size > 8000000:
+        await context.send('The file was too large.')
+        return
+
+    f_obj = io.BytesIO(b'')
+
+    await file.save(f_obj, seek_begin=True)
+
+    text = f_obj.read()
+
+    text = text.decode('utf-8')
+
+    text = regex.sub('^[a-zA-Z .,]', '', text)
+
+    print(text)
+    print(type(text))
+
+    model = markovify.Text(text)
+
+    sentences = ''
+
+    for i in range(min(num_sentences, 20)):
+        sentences += model.make_sentence(tries=100) + " "
+
+    await context.send('Output:\n```%s```' % sentences)
+
+
+@client.command(description="Fetch a random joke.",
+                brief="Fetch a random joke.")
+async def jokes(context):
+    async with aiohttp.ClientSession() as session:  # Async HTTP request
+        raw_response = await session.post('http://api.icndb.com/jokes/random?firstName=Fin&lastName=Blackett&escape=javasript')
+        response = await raw_response.text()  # Take only the data
+        response = json.loads(response)  # Parse the JSON into a format we can use
+    joke = response['value']['joke']
+    joke.replace('\\\'', '\'')
+    joke.replace('\\\"', '\"')
+    await context.send(joke)
+
+
+@client.command(description="Send a random pickup line.",
+                brief="Send a random pickup line.")
+async def pickmeup(context):
+    async with aiohttp.ClientSession() as session:  # Async HTTP request
+        raw_response = await session.get('http://pebble-pickup.herokuapp.com/tweets/random')
+        response = await raw_response.text()  # Take only the data
+        response = json.loads(response)  # Parse the JSON into a format we can use
+    joke = response['tweet']
+    await context.send(joke)
+
+
+@client.command(description="Prune last N messages from a channel",
+                brief="Prune messages.")
+@has_permissions(manage_messages=True)
+async def prune(context, amount: int=1):
+    for message in await context.history(limit=amount).flatten():
+        await message.delete()
+
+sys.stdout.write('Starting...\n')
 client.run(config.token)

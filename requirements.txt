@@ -1,5 +1,5 @@
-cairosvg
-py-rolldice
 aiohttp
 regex
-discord
+py-rolldice
+trueskill
+markovify
