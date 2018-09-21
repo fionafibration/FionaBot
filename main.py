@@ -698,6 +698,128 @@ async def challenge(context, white: Member):
 
     chess_game.engine.kill()
 
+@client.command(description='Challenge the mentioned users to a game of chess. To end the game, type \'end\'.',
+                brief='Challenge two people to a game of chess')
+async def challenge2(context, white: Member, black: Member):
+    timed_out = False
+
+    await context.send('%s and %s, you have been challenged to play each other in a game of chess by %s' % (white.mention, black.mention, context.author.mention))
+
+    flip = random.choice([True, False])
+
+    if flip:
+        white, black = black, white
+
+    with open('users.json') as f:
+        users = json.load(f)
+
+    if str(white.id) not in users:
+        await update_data(users, white)
+    elif str(black.id) not in users:
+        await update_data(users, black)
+
+    white_rating = trueskill.Rating(**users[str(white.id)]['trueskill'])
+
+    black_rating = trueskill.Rating(**users[str(black.id)]['trueskill'])
+
+    chess_game = chessgame.ChessGame()
+
+    file = chess_game.get_png(chessgame.chess.WHITE)
+    file = io.BytesIO(file)
+    file = File(file, filename='board.png')
+    await context.send('Board:', file=file)
+
+    while True:
+        end = False
+
+        # White's move
+        while True:
+            await context.send('%s, please enter your move in UCI format (eg. e2e4)' % white.mention)
+            try:
+                move_str = await client.wait_for('message', check=lambda m: m.author == white, timeout=300)
+            except asyncio.TimeoutError:
+                end = True
+                timed_out = True
+                break
+            if move_str.content.lower() == 'end':
+                end = True
+                break
+            try:
+                chess_game.player_move(move_str.content.lower())
+                break
+            except chessgame.InvalidMoveException as e:
+                await context.send(str(e))
+        if end:
+            white_ended = True
+            break
+        await context.send(chess_game.generate_move_digest(white.display_name))
+        if chess_game.is_finished():
+            break
+
+        # Black's move
+        file = chess_game.get_png(chessgame.chess.BLACK)
+        file = io.BytesIO(file)
+        file = File(file, filename='board.png')
+        await context.send('Board:', file=file)
+        if chess_game.check():
+            await context.send('Black is in check!')
+        while True:
+            await context.send('%s, please enter your move in UCI format (eg. e2e4)' % black.mention)
+            try:
+                move_str = await client.wait_for('message', check=lambda m: m.author == black, timeout=300)
+            except asyncio.TimeoutError:
+                end = True
+                timed_out = True
+                break
+            if move_str.content.lower() == 'end':
+                end = True
+                break
+            try:
+                chess_game.player_move(move_str.content.lower())
+                break
+            except chessgame.InvalidMoveException as e:
+                await context.send(str(e))
+        if end:
+            black_ended = True
+            break
+        await context.send(chess_game.generate_move_digest(black.display_name))
+        if chess_game.is_finished():
+            break
+
+        file = chess_game.get_png(chessgame.chess.WHITE)
+        file = io.BytesIO(file)
+        file = File(file, filename='board.png')
+        await context.send('Board:', file=file)
+
+    if chess_game.result() == '1-0' or black_ended:
+        white_rating, black_rating = trueskill.rate_1vs1(white_rating, black_rating)
+    elif chess_game.result() == '0-1' or white_ended:
+        black_rating, white_rating = trueskill.rate_1vs1(black_rating, white_rating)
+
+    with open('users.json') as f:
+        users = json.load(f)
+        users[str(white.id)]['trueskill'] = {'mu': white_rating.mu, 'sigma': white_rating.sigma}
+        users[str(black.id)]['trueskill'] = {'mu': black_rating.mu, 'sigma': black_rating.sigma}
+
+    if timed_out:
+        await context.send('Game timed out. Next time please make a move within 5 minutes.')
+
+    date_string = f"{datetime.date.today():%Y.%m.%d}"
+    pgn = chess_game.get_pgn('Chess Game', 'Discord', date_string, white.display_name, black.display_name)
+
+    embed = Embed(title="Chess Game Results", colour=Colour(0xff00), description="```%s```" % pgn)
+
+    embed.set_author(name="Fin Bot", icon_url="https://tinyurl.com/y8p7a8px")
+
+    embed.add_field(name="White", value='%s\nRating: %0.3f' % (white.display_name, white_rating.mu))
+    embed.add_field(name="Black", value='%s\nRating: %0.3f' % (black.display_name, black_rating.mu))
+    embed.add_field(name="Final Score", value=chess_game.result())
+
+    await context.send(embed=embed)
+
+    chess_game.engine.kill()
+
+
 @client.command(description="Start a new initiative tracker session. Initiative tracking uses three commands: 'next', 'add', and 'remove.'\n"
                             "All commands will use the number ID for creatures.\n"
                             "Next simply increments the turn to move and deals with any effects that may need to expire.\n"
