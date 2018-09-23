@@ -964,8 +964,10 @@ async def source(context, *command):
 
 
 
-@client.command()
-async def sauce(self, context, link=None, similarity=80):
+@client.command(description="Search an image link or image attachment for a source from saucenao, "
+                            "Optionally add a similarity percentage threshold",
+                brief="Search an image for a source on saucenao.")
+async def sauce(self, context, link=None, similarity: int=80):
     """
     Reverse image search using saucenao
     Thanks to https://github.com/tailoric/image-search-cog/blob/master/image_search.py for source
@@ -990,7 +992,7 @@ async def sauce(self, context, link=None, similarity=80):
             if response.status == 200:
                 soup = bs4.BeautifulSoup(await response.text(), 'html.parser')
                 for result in soup.select('.resulttablecontent'):
-                    if float(similarity) > float(result.select('.resultsimilarityinfo')[0].contents[0][:-1]):
+                    if int(similarity) > float(result.select('.resultsimilarityinfo')[0].contents[0][:-1]):
                         break
                     else:
                         if result.select('a'):
