@@ -3,3 +3,4 @@ regex
 py-rolldice
 trueskill
 markovify
+bs4

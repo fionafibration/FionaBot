@@ -20,6 +20,7 @@ import rolldice
 import trueskill
 import sys
 import markovify
+import bs4
 from discord import *
 from discord.ext.commands import *
 
@@ -938,28 +939,66 @@ async def pickmeup(context):
                 brief="Prune messages.")
 @has_permissions(manage_messages=True)
 async def prune(context, amount: int=1):
-    for message in await context.history(limit=amount).flatten():
-        await message.delete()
+    await context.message.channel.purge(limit = amount)
 
 @client.command(description="Inspects the source code for a command. E.G. 'f?source challenge'",
                 brief="Inspect the source code for a command.")
-async def source(context, command):
+async def source(context, *command):
     """
     Inspects the source code of a command
 
     :param context: Command
     :param command: Command to inspect
     """
-    source = str(inspect.getsource(client.get_command(command).callback))
-    fmt = '```py\n' + source.replace('`', '\u200b`') + '\n```'
-    if len(fmt) > 2000:
-        async with context.session.post("https://hastebin.com/documents", data=source) as resp:
-            data = await resp.json()
-        key = data['key']
-        await context.send(f'Command source: <https://hastebin.com/{key}.py>')
+    source = str(inspect.getsource(client.get_command(' '.join(command)).callback))
+    source_formatted = '```py\n' + source.replace('`', '\u200b`') + '\n```'
+    if len(source_formatted) > 2000:
+        async with aiohttp.ClientSession() as session:
+            raw_response = await session.post("https://hastebin.com/documents", data=source)
+            response = await raw_response.text()
+            response = json.loads(response)
+        uid = response['key']
+        await context.send('Command source: <https://hastebin.com/%s.py>' % uid)
     else:
-        await context.send(fmt)
+        await context.send(source_formatted)
 
+
+
+@client.command()
+async def sauce(self, context, link=None, similarity=80):
+    """
+    Reverse image search using saucenao
+    Thanks to https://github.com/tailoric/image-search-cog/blob/master/image_search.py for source
+
+    :param context: Command context
+    :param link: Link. Leave as none for an attachment search
+    :param similarity: Minimum similarity
+    """
+    file = context.message.attachments
+    if link is None and not file:
+        await context.send('Message didn\'t contain Image')
+    else:
+        await context.trigger_typing()
+        if file:
+            url = file[0]['proxy_url']
+            similarity = link
+        else:
+            url = link
+        async with aiohttp.ClientSession() as session:
+            response = await session.get('http://saucenao.com/search.php?url={}'.format(url))
+            source = None
+            if response.status == 200:
+                soup = bs4.BeautifulSoup(await response.text(), 'html.parser')
+                for result in soup.select('.resulttablecontent'):
+                    if float(similarity) > float(result.select('.resultsimilarityinfo')[0].contents[0][:-1]):
+                        break
+                    else:
+                        if result.select('a'):
+                            source = result.select('a')[0]['href']
+                            await self.bot.reply('<{}>'.format(source))
+                            return
+                if source is None:
+                    await context.send('No source over the similarity threshold')
 
 sys.stdout.write('Starting...\n')
 client.run(config.token)
