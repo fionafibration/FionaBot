@@ -946,7 +946,8 @@ async def prune(context, amount: int=1):
 async def source(context, *command):
     """
     Inspects the source code of a command
-
+    Thanks to https://github.com/shadeyg56/Darkness/
+    
     :param context: Command
     :param command: Command to inspect
     """
