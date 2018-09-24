@@ -21,6 +21,8 @@ import trueskill
 import sys
 import markovify
 import bs4
+import hashlib
+from randomart import RandomArt
 from discord import *
 from discord.ext.commands import *
 
@@ -915,7 +917,7 @@ async def markov(context, num_sentences: int = 8):
                 brief="Fetch a random joke.")
 async def jokes(context):
     async with aiohttp.ClientSession() as session:  # Async HTTP request
-        raw_response = await session.post('http://api.icndb.com/jokes/random?firstName=Fin&lastName=Blackett&escape=javasript')
+        raw_response = await session.post('http://api.icndb.com/jokes/random?firstName=Fin&lastName=Blackett&escape=javascript')
         response = await raw_response.text()  # Take only the data
         response = json.loads(response)  # Parse the JSON into a format we can use
     joke = response['value']['joke']
@@ -980,7 +982,6 @@ async def sauce(self, context, link=None, similarity: int=80):
     if link is None and not file:
         await context.send('Message didn\'t contain Image')
     else:
-        await context.trigger_typing()
         if file:
             url = file[0]['proxy_url']
             similarity = link
@@ -1001,6 +1002,29 @@ async def sauce(self, context, link=None, similarity: int=80):
                             return
                 if source is None:
                     await context.send('No source over the similarity threshold')
+
+@client.command(description="Creates an ascii art 'randomart' out of a given string."
+                            "Simply send the command and then type your text once prompted."
+                            "Text will be sanitized of all non-word characters, uppercased,"
+                            "and then will be used to generate a unique randomart for that"
+                            "phrase.",
+                brief="Creates a randomart out of text.")
+async def art(context):
+    await context.send('Waiting for text input.')
+
+    text = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=6000)
+
+    text = text.content.strip('` ').upper()
+    text = regex.sub(r'[^\w ]', ' ', text)
+    text = regex.sub(r'[ \t]{2,}', ' ', text)
+
+    hex = hashlib.md5(text.encode('utf-8')).hexdigest()
+
+    hash_values = [int(hex[i:i + 8], 16) for i in range(0, len(hex), 8)]
+
+    randomart = RandomArt(hash_values, 'FINBOT')
+
+    await context.send('Your art is:\n```%s```' % randomart)
 
 sys.stdout.write('Starting...\n')
 client.run(config.token)
