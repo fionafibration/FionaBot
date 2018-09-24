@@ -1019,7 +1019,7 @@ async def art(context):
     text = regex.sub(r'[^\w ]', ' ', text)
     text = regex.sub(r'[ \t]{2,}', ' ', text)
 
-    hex = hashlib.md5(text.encode('utf-8')).hexdigest()
+    hex = hashlib.sha3_256(text.encode('utf-8')).hexdigest()
 
     hash_values = [int(hex[i:i + 8], 16) for i in range(0, len(hex), 8)]
 
