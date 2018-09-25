@@ -1015,8 +1015,8 @@ async def art(context):
 
     text = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=6000)
 
-    text = text.content.strip(' ').upper()
-    text = regex.sub(r'[^a-z0-9 ]', ' ', text)
+    text = text.content.strip('` ').upper()
+    text = regex.sub(r'[^\w ]', ' ', text)
     text = regex.sub(r'[ \t]{2,}', ' ', text)
 
     hex = hashlib.sha3_256(text.encode('utf-8')).hexdigest()
