@@ -372,7 +372,6 @@ async def dicemode(context):
         try:
             msg = await client.wait_for('message', check=lambda m: m.author == context.author, timeout = 6000)
         except asyncio.TimeoutError:
-            timed_out = True
             break
         else:
             try:
@@ -495,8 +494,6 @@ async def white(context):
 
     await context.send(embed=embed)
 
-    timed_out = False
-
     chess_game.engine.kill()
 
 
@@ -506,8 +503,6 @@ async def white(context):
 async def black(context):
     """
     Command to start a new game of chess vs AI as black
-
-    todo:: Allow for selecting different difficulty levels
 
     :param context: Command context
     :return:
@@ -583,7 +578,7 @@ async def black(context):
     chess_game.engine.kill()
 
 @cooldown(2, 60, BucketType.user)
-@client.command(description='Challenge the mentioned user to a game of chess. To end the game, type \'end\'.',
+@new.command(description='Challenge the mentioned user to a game of chess. To end the game, type \'end\'.',
                 brief='Challenge a person to a game of chess')
 async def challenge(context, white: Member):
     timed_out = False
@@ -701,8 +696,11 @@ async def challenge(context, white: Member):
 
     chess_game.engine.kill()
 
+
+@cooldown(2, 60, BucketType.user)
 @client.command(description='Challenge the mentioned users to a game of chess. To end the game, type \'end\'.',
                 brief='Challenge two people to a game of chess')
+@has_permissions(kick_members=True)
 async def challenge2(context, white: Member, black: Member):
     timed_out = False
 
@@ -942,6 +940,7 @@ async def pickmeup(context):
 @has_permissions(manage_messages=True)
 async def prune(context, amount: int=1):
     await context.message.channel.purge(limit = amount)
+
 
 @client.command(description="Inspects the source code for a command. E.G. 'f?source challenge'",
                 brief="Inspect the source code for a command.")
