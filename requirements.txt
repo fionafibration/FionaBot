@@ -5,3 +5,4 @@ trueskill
 markovify
 beautifulsoup4  
 python-chess
+cairosvg

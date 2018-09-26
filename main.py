@@ -22,7 +22,7 @@ import sys
 import markovify
 import bs4
 import hashlib
-from randomart import RandomArt
+from randomart import randomart
 from discord import *
 from discord.ext.commands import *
 
@@ -1021,9 +1021,7 @@ async def art(context):
 
     hex = hashlib.sha3_256(text.encode('utf-8')).hexdigest()
 
-    hash_values = [int(hex[i:i + 8], 16) for i in range(0, len(hex), 8)]
-
-    randomart = RandomArt(hash_values, 'FINBOT')
+    randomart = randomart(hex, 'FINBOT')
 
     await context.send('Your art is:\n```%s```' % randomart)
 
