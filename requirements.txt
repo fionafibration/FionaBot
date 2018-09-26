@@ -3,4 +3,5 @@ regex
 py-rolldice
 trueskill
 markovify
-bs4
+beautifulsoup4  
+python-chess
