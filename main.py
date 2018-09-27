@@ -915,7 +915,7 @@ async def markov(context, num_sentences: int = 8):
                 brief="Fetch a random joke.")
 async def jokes(context):
     async with aiohttp.ClientSession() as session:  # Async HTTP request
-        raw_response = await session.post('http://api.icndb.com/jokes/random?firstName=Fin&lastName=Blackett&escape=javascript')
+        raw_response = await session.post('http://api.icndb.com/jokes/random?firstName=Fin&lastName=Bot&escape=javascript')
         response = await raw_response.text()  # Take only the data
         response = json.loads(response)  # Parse the JSON into a format we can use
     joke = response['value']['joke']
