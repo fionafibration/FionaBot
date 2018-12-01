@@ -319,9 +319,9 @@ async def top(context):
         ranking = ''
         for i in range(10):
             if len(userList[i].display_name) > 20:
-                ranking += '%s...: %s levels, %s xp\n' % (userList[i].display_name[:17], get_level(userList[i]), get_xp(userList[i]))
+                ranking += '%s. %s...: %s levels, %s xp\n' % (i + 1, userList[i].display_name[:17], get_level(userList[i]), get_xp(userList[i]))
             else:
-                ranking += '%s: %s levels, %s xp\n' % (userList[i].display_name, get_level(userList[i]), get_xp(userList[i]))
+                ranking += '%s. %s: %s levels, %s xp\n' % (i + 1, userList[i].display_name, get_level(userList[i]), get_xp(userList[i]))
         await context.send('Rankings for this server:\n```%s```' % ranking)
 
 
