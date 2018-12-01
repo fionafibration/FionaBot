@@ -23,6 +23,7 @@ import markovify
 import bs4
 import hashlib
 import randomart
+import copy
 from discord import *
 from discord.ext.commands import *
 
@@ -295,6 +296,33 @@ async def xp(context, mention: Member):
         users = json.load(f)
 
     await context.send('%s has %s experience!' % (mention.display_name, users[str(mention.id)]['experience']))
+
+
+@client.command(description='List the top 5 users in the server by XP.',
+                brief='List top users by XP')
+async def top(context):
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    def get_xp(user):
+        try:
+            return users[str(user.id)]['experience']
+        except:
+            return 0
+    def get_level(user):
+        try:
+            return users[str(user.id)]['level']
+        except:
+            return 0
+    if len(context.guild.members) >= 1:
+        userList = copy.copy(context.guild.members)
+        userList.sort(key=get_xp, reverse=True)
+        ranking = ''
+        for i in range(10):
+            if len(userList[i].display_name) > 20:
+                ranking += '%s...: %s levels, %s xp\n' % (userList[i].display_name[:17], get_level(userList[i]), get_xp(userList[i]))
+            else:
+                ranking += '%s: %s levels, %s xp\n' % (userList[i].display_name, get_level(userList[i]), get_xp(userList[i]))
+        await context.send('Rankings for this server:\n```%s```' % ranking)
 
 
 @client.command(name='8ball',
@@ -1007,7 +1035,8 @@ async def sauce(self, context, link=None, similarity: int=80):
                             "Simply send the command and then type your text once prompted."
                             "Text will be sanitized of all non-word characters, uppercased,"
                             "and then will be used to generate a unique randomart for that"
-                            "phrase.",
+                            "phrase."
+                            "This is an example of a commitment scheme.",
                 brief="Creates a randomart out of text.")
 async def art(context):
     await context.send('Waiting for text input.')
