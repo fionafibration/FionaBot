@@ -32,6 +32,8 @@ class AStar:
             if 0 <= considered[0] < self.width:
                 if 0 <= considered[1] < self.height:
                     if self.array[considered[1]][considered[0]] != 1:
+                        if self.array[considered[1]][current[0]] == 1 and self.array[current[1]][considered[0]] == 1:
+                            continue
                         neighbors.append(considered)
 
         return neighbors
