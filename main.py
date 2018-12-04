@@ -24,6 +24,7 @@ import bs4
 import hashlib
 import randomart
 import copy
+import astar
 from discord import *
 from discord.ext.commands import *
 
@@ -1052,6 +1053,33 @@ async def art(context):
     randomart_str = randomart.randomart(hex, 'FINBOT')
 
     await context.send('Your art is:\n```%s```' % randomart_str)
+
+
+@client.command(description="""Make a board with the following rules:
+                            1. Boards must be rectangular
+                            2. Board must contain one start tile (S) and one end tile(X)
+                            3. Board can contain any number of walls (B)
+                            4. Empty spaces are denoted by periods (.)
+                            
+                            Example:
+                            .X.......
+                            BBBB.....
+                            .....BBBB
+                            ........S
+                            """,
+                brief="AI Pathfinding")
+async def pathfind(context):
+    await context.send('Please send your board:')
+
+    board = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=6000).strip('`"\' \t\n')
+    try:
+        gif = astar.draw_path(board)
+    except Exception as e:
+        await context.send(str(e))
+    else:
+        file = File(gif, filename='pathfinding.gif')
+        await context.send('Path:', file=file)
+
 
 sys.stdout.write('Starting...\n')
 client.run(config.token)
