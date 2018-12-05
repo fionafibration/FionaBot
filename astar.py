@@ -167,15 +167,13 @@ def draw_path(board):
         images = []
 
         for step in range(len(path)):
-            image = Image.new('RGB', (a.width * 12 + 2, a.height * 12 + 2))
+            image = Image.new('RGBA', (a.width * 12 + 2, a.height * 12 + 2), color=(54, 57, 63))
 
             draw = ImageDraw.Draw(image)
-
-            draw.rectangle([0, 0, a.width * 12 + 2, a.height * 12 + 2], fill=(255, 255, 255))
             for y in range(a.height):
                 for x in range(a.width):
                     if a.array[y][x] == 1:
-                        draw.rectangle([x * 12, y * 12, x * 12 + 12, y * 12 + 12], fill=(0, 0, 0))
+                        draw.rectangle([x * 12, y * 12, x * 12 + 12, y * 12 + 12], fill=(255, 255, 255))
                     if (x, y) == a.start:
                         draw.ellipse([x * 12, y * 12, x * 12 + 12, y * 12 + 12], fill=(0, 255, 0))
                     if (x, y) == a.end:
