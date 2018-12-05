@@ -231,6 +231,9 @@ async def on_message(message):
     if message.content.lower() == 'mirage':
         await message.channel.send('now dont get me started on the mirage 2000 hahah its so bad like wtf french the best plane they ever made was a flag blown away by the wind it works great actualy but the mirage is so ugly i dont enven now how it can even fly i know a friend is part of the raf he flew three (yes, 3) mirage and the worst was the deux mille i mean its a flying pankace and really how can a french plane work anyway they dont even now how cars work look at renault its so bad right so yes the mirage is pretty shitty right yeah')
 
+    if message.content.lower() == 'thatsthejoke.jpg':
+        await message.channel.send('THATS THE JOKE', file=File('thatsthejoke.gif'))
+
     with open('users.json', 'r') as f:
         users = json.load(f)
 
