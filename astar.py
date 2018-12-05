@@ -11,6 +11,7 @@ class PathFindingException(Exception):
 
 class AStar:
     def __init__(self, array, width, height, start, end):
+        # Should be self explanatory
         self.array = array
         self.width = width
         self.height = height
@@ -19,10 +20,13 @@ class AStar:
 
     @staticmethod
     def distance(a, b):
-        # Euclidean istance rounded to halves
+        # Euclidean distance rounded to halves
+        # AKA Pythagorean theorem, expect sqrt(2) becomes 1.5
         return round(math.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) * 2) / 2
 
     def get_neighbors(self, current):
+        # Return all possible in-bounds neighbors
+        # Diagonal moves are allowed, but not through a wall
         possible_neighbors = [(1, 1), (1, -1), (-1, 1), (-1, -1), (0, 1), (0, -1), (1, 0), (-1, 0)]
 
         neighbors = []
@@ -31,14 +35,17 @@ class AStar:
             considered = (current[0] + dx, current[1] + dy)
             if 0 <= considered[0] < self.width:
                 if 0 <= considered[1] < self.height:
+                    # Move was in-bounds
                     if self.array[considered[1]][considered[0]] != 1:
                         if self.array[considered[1]][current[0]] == 1 and self.array[current[1]][considered[0]] == 1:
+                            # Move is a diagonal that doesn't have an opening, continue
                             continue
                         neighbors.append(considered)
 
         return neighbors
 
     def pathfind(self):
+        # Read the A* algorithm pseudocode on wikipedia, it'll explain this better than I can
         closed = set()
         came_from = {}
         g_score = {self.start: 0}
@@ -74,8 +81,13 @@ class AStar:
                     g_score[neighbor] = tentative_g
                     f_score[neighbor] = tentative_g + self.distance(neighbor, self.end)
                     heapq.heappush(open, (f_score[neighbor], neighbor))
+                    # Massive if statement to check if this neighbor is now the closest we've gotten to the end point
+                    # If it is and we haven't actually reached the endpoint by the time we exhaust all moves
+                    # Then we return the path to get us the closest we can get
                     if self.distance(neighbor, self.end) < self.distance(closest[0], self.end) or (self.distance(neighbor, self.end) == self.distance(closest[0], self.end) and g_score[neighbor] < closest[1]):
                         closest = (neighbor, g_score[neighbor])
+
+        # We never found a path all the way, return the path to the closest we got.
 
         path = []
         current = closest[0]
@@ -87,6 +99,7 @@ class AStar:
         return path
 
     def solve(self):
+        # Here for possible future textmode
         solution = self.pathfind()
 
         def solution_string():
@@ -102,31 +115,17 @@ class AStar:
         return ''.join(solution_string()), solution
 
 
-board = """
-
-..........B.............
-.......S..B......BBBBBB.
-..........B.....BB......
-........BBB.....B..BBBBB
-................B.......
-................B...X...
-
-""".strip()
-
-board = """
-
-S...
-X.
-
-""".strip()
-
 def draw_path(board):
     try:
         array = []
+        # Split our input into a 2d array
         char_array = [[char for char in line] for line in board.split('\n')]
-
-        max_line_length = max(*[len(line) for line in char_array])
-    except:
+        try:
+            max_line_length = max(*[len(line) for line in char_array])
+        except:
+            max_line_length = len(char_array)
+    except Exception as e:
+        raise e
         raise PathFindingException('Error parsing board.')
     for line in char_array:
         if len(line) < max_line_length:
