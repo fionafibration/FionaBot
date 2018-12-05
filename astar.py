@@ -121,11 +121,13 @@ X.
 """.strip()
 
 def draw_path(board):
-    array = []
-    char_array = [[char for char in line] for line in board.split('\n')]
+    try:
+        array = []
+        char_array = [[char for char in line] for line in board.split('\n')]
 
-    max_line_length = max(*[len(line) for line in char_array])
-
+        max_line_length = max(*[len(line) for line in char_array])
+    except:
+        raise PathFindingException('Error parsing board.')
     for line in char_array:
         if len(line) < max_line_length:
             line.extend(['.'] * (max_line_length - len(line)))
@@ -184,10 +186,10 @@ def draw_path(board):
 
         out = io.BytesIO()
 
-        images[0].save(out, format='GIF', save_all=True, append_images=images[1:], duration=300, loop=0)
+        images[0].save(out, 'GIF', save_all=True, append_images=images[1:], duration=300, loop=0)
+
+        out.seek(0)
 
         return out
     except:
         raise PathFindingException('Error pathfinding or generating GIF')
-
-print(draw_path(board))

@@ -1071,7 +1071,8 @@ async def art(context):
 async def pathfind(context):
     await context.send('Please send your board:')
 
-    board = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=6000).strip('`"\' \t\n')
+    board = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=6000)
+    board = board.content.strip('`"\' \t\n')
     try:
         gif = astar.draw_path(board)
     except Exception as e:
