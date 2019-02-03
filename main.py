@@ -234,6 +234,11 @@ async def on_message(message):
     if message.content.lower() == 'thatsthejoke.jpg':
         await message.channel.send('THATS THE JOKE', file=File('thatsthejoke.gif'))
 
+    if message.content.lower() == '@someone':
+        server = message.guild
+        member = random.choice(server.members)
+        await message.channel.send(member.mention)
+
     with open('users.json', 'r') as f:
         users = json.load(f)
 
