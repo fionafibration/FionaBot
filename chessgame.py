@@ -140,5 +140,5 @@ class ChessGame:
             self.lastmove = self.board.peek()
         except IndexError:
             self.lastmove = None
-        self.svg = chess.svg.board(self.board, lastmove=self.lastmove, flipped=not color)
+        self.svg = chess.svg.board(self.board, lastmove=self.lastmove, flipped=not color, style="text {fill: white;}")
         return cairosvg.svg2png(bytestring=self.svg.encode('utf-8'))

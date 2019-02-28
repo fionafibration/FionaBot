@@ -448,9 +448,10 @@ async def new(context):
     :return:
     """
     if context.invoked_subcommand is None:
-        await context.send('Invalid new game. Please use the subcommand white or black')
+        await context.send('Invalid new game. Please use the subcommand white or black.')
 
 
+@cooldown(2, 60, BucketType.user)
 @new.command(description='Starts a game of chess with the bot. To end a game of chess, type \'end\' instead of '
                          'entering your move. You must enter your move within 5 minutes or the game will time out.',
              brief='Start a game of chess as white.')
@@ -534,6 +535,7 @@ async def white(context):
     chess_game.engine.kill()
 
 
+@cooldown(2, 60, BucketType.user)
 @new.command(description='Starts a game of chess with the bot. To end a game of chess, type \'end\' instead of '
                          'entering your move. You must enter your move within 5 minutes or the game will time out.',
              brief='Start a game of chess as white.')
