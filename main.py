@@ -25,6 +25,9 @@ import hashlib
 import randomart
 import copy
 import astar
+import zlib
+import base64
+from fuzzywuzzy import fuzz
 from discord import *
 from discord.ext.commands import *
 
@@ -35,7 +38,38 @@ clever_api_user = 'CLEVERBOT USER HERE'
 clever_api_key = 'CLEVERBOT KEY HERE'
 '''
 
+class TIOSerializer:
+    def __init__(self):
+        self.bytes = b''
 
+    def add_variable(self, name, contents: list):
+        self.bytes += b'V' + name.encode('utf-8') + b'\0' + str(len(contents)).encode('utf-8') + b'\0'
+
+        for var in contents:
+            self.bytes += var.encode('utf-8') + b'\0'
+
+    def add_file(self, name, contents: str):
+        self.bytes += b'F' + name.encode('utf-8') + b'\0' + str(len(contents)).encode('utf-8') \
+                      + b'\0' + contents.encode('utf-8')
+
+    def add_run(self):
+        self.bytes += b'R'
+
+    def add_lang(self, language):
+        self.add_variable('lang', [language])
+
+    def add_code(self, code):
+        self.add_file('.code.tio', code)
+
+    def add_input(self, contents):
+        self.add_file('.input.tio', contents)
+
+    def add_args(self, args):
+        self.add_variable('args', args)
+        
+    def dump(self):
+        return self.bytes
+            
 try:
     import config
 except ImportError:
@@ -126,6 +160,16 @@ def format_large(number):
 
     a = '%E' % number
     return a.split('E')[0].rstrip('0').rstrip('.') + 'E' + a.split('E')[1]
+
+
+def inflate(data):
+    decompress = zlib.decompressobj(
+            -zlib.MAX_WBITS  # see above
+    )
+    inflated = decompress.decompress(data)
+    inflated += decompress.flush()
+    return inflated
+
 
 async def update_data(users, user):
     """
@@ -1092,6 +1136,112 @@ async def pathfind(context):
         await context.send('Path:', file=file)
 
 
+@client.group(description="Command group for running code in over 600 languages.",
+              brief="Run code in various languages.")
+async def code(context):
+    """
+    Code command group
+
+    :param context: Command context
+    :return:
+    """
+    if context.invoked_subcommand is None:
+        await context.send('Invalid code command.')
+
+
+@code.command(description="Search the language database for a certain language.",
+              brief="Search the language DB for a language")
+async def search(context, *langname):
+
+    if not langname:
+        await context.send('Need a language name to search!')
+        return
+
+    results = {}
+    async with aiohttp.ClientSession() as session:
+        response = await session.get('https://tio.run/languages.json')
+
+        if response.status == 200:
+            body = json.loads(await response.text())
+
+            for lang in body.keys():
+                if fuzz.partial_ratio(body[lang]['name'], ' '.join(langname)) > 75:
+                    results[lang] = body[lang]['name']
+    if results:
+        await context.send('Languages results: ```%s```' % '\n'.join([
+            '%s: %s' % (id, name) for id, name in results.items()
+        ]))
+    else:
+        await context.send('No results!')
+
+
+@code.command(description="Run code in a given language.\n"
+                          "Please specify the language, and 'true' if you'd like to provide input, "
+                          "otherwise false.\n"
+                          "You can specify a list of command line arguments you'd like to be provided to the "
+                          "language's interpreter",
+              brief="Run code in a language.")
+async def run(context, language, ask_input: bool=False, *args):
+    async with aiohttp.ClientSession() as session:
+        response = await session.get('https://tio.run/languages.json')
+
+        if response.status == 200:
+            body = json.loads(await response.text())
+
+            if language not in body:
+                await context.send('Unknown language!')
+                return
+
+    await context.send('Please send your code wrapped in triple backticks!')
+
+    message = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=6000)
+
+    if ask_input:
+        await context.send('Please send your code\'s input')
+
+        input_message = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=6000)
+
+        input_message = input_message.content
+    else:
+        input_message = ''
+
+    message = regex.match(r'^```([\S\s]+)```$', message.content.strip())
+
+    if message is None:
+        await context.send('Code was improperly formatted!')
+        return
+
+    try:
+        code = message[1]
+
+        tio = TIOSerializer()
+
+        tio.add_lang(language)
+
+        tio.add_code(code)
+
+        tio.add_input(input_message)
+
+        tio.add_args(args if args else [])
+
+        tio.add_run()
+
+        byte_data = tio.dump()
+
+        async with aiohttp.ClientSession() as session:
+            response = await session.post('https://tio.run/cgi-bin/static/fb67788fd3d1ebf92e66b295525335af-run', data=zlib.compress(byte_data, 9)[2:-4])
+
+            response_data = zlib.decompress((await response.read())[10:], wbits=-15)
+
+        split = response_data[:16].decode('utf-8')
+
+        _, output, analytics, *_= regex.split(split, response_data.decode('utf-8') )
+
+        await context.send('```%s```\n%s' % (output, analytics))
+
+    except:
+        await context.send('Error running code!')
+
+
 sys.stdout.write('Starting...\n')
 client.run(config.token)
-

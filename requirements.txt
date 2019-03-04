@@ -7,3 +7,4 @@ beautifulsoup4
 python-chess
 cairosvg
 discord
+fuzzywuzzy
