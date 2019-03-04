@@ -6,6 +6,6 @@ markovify
 beautifulsoup4  
 python-chess
 cairosvg
-discord
+git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]
 fuzzywuzzy
 python-Levenshtein
