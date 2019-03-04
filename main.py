@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # encoding: utf-8
 
 """
@@ -1233,17 +1233,11 @@ async def run(context, language, ask_input: bool=False, *args):
 
             response_data = zlib.decompress((await response.read())[10:], wbits=-15)
 
-        split = response_data[:16].decode('utf-8', errors='replace')
+        split = response_data[:16]
 
-        split_data = regex.split(split, response_data.decode('utf-8', errors='replace'))
+        split_data = regex.split(regex.escape(split), response_data)
 
-        if len(split_data) > 3:
-            _, output, analytics, *_= split_data
-        else:
-            _, output = split_data
-            analytics = 'Error found!'
-
-        await context.send('```%s```\n%s' % (output, analytics))
+        await context.send('\n'.join(['```%s```' % piece.decode('utf-8', errors='replace') for piece in split_data if piece.decode('utf-8', errors='replace')]))
 
     except Exception as e:
         raise e
