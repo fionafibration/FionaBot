@@ -49,7 +49,7 @@ class TIOSerializer:
             self.bytes += var.encode('utf-8') + b'\0'
 
     def add_file(self, name, contents: str):
-        self.bytes += b'F' + name.encode('utf-8') + b'\0' + str(len(contents)).encode('utf-8') \
+        self.bytes += b'F' + name.encode('utf-8') + b'\0' + str(len(contents.encode('utf-8'))).encode('utf-8') \
                       + b'\0' + contents.encode('utf-8')
 
     def add_run(self):
@@ -1233,14 +1233,20 @@ async def run(context, language, ask_input: bool=False, *args):
 
             response_data = zlib.decompress((await response.read())[10:], wbits=-15)
 
-        split = response_data[:16].decode('utf-8')
+        split = response_data[:16].decode('utf-8', errors='replace')
 
-        _, output, analytics, *_= regex.split(split, response_data.decode('utf-8') )
+        split_data = regex.split(split, response_data.decode('utf-8', errors='replace'))
+
+        if len(split_data) > 3:
+            _, output, analytics, *_= split_data
+        else:
+            _, output = split_data
+            analytics = 'Error found!'
 
         await context.send('```%s```\n%s' % (output, analytics))
 
-    except:
-        await context.send('Error running code!')
+    except Exception as e:
+        raise e
 
 
 sys.stdout.write('Starting...\n')
