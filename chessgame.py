@@ -9,6 +9,7 @@ import chess.uci
 import chess.pgn
 import chess.svg
 import cairosvg
+import os
 
 
 class InvalidMoveException(Exception):
@@ -18,7 +19,7 @@ class InvalidMoveException(Exception):
 
 class ChessGame:
     def __init__(self):
-        self.engine = chess.uci.popen_engine("stockfish_9_x64_popcnt")
+        self.engine = chess.uci.popen_engine("stockfish_10_x64_popcnt") if os.name == 'nt' else chess.uci.popen_engine('stockfish_10_x64_modern')
         self.engine.uci()
         self.board = chess.Board()
         self.engine.position(self.board)
