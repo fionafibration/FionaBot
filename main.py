@@ -1239,8 +1239,8 @@ async def run(context, language, ask_input: bool=False, *args):
 
         await context.send('\n'.join(['```%s```' % piece.decode('utf-8', errors='replace') for piece in split_data if piece.decode('utf-8', errors='replace')]))
 
-    except Exception as e:
-        raise e
+    except:
+        await context.send('Error running program!')
 
 
 sys.stdout.write('Starting...\n')
