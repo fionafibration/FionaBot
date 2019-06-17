@@ -1089,7 +1089,7 @@ async def sauce(context, link=None, similarity: int=80):
 
 @client.command(description='Gets a computer-generated waifu from the database',
                 brief='Waifu generation')
-async def waifu(context, number: int=None):
+async def animegrill(context, number: int=None):
     if number is None:
         number = random.randint(0, 11999)
     elif number < 0 or number > 11999:
