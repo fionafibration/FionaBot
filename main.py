@@ -1087,20 +1087,22 @@ async def sauce(context, link=None, similarity: int=80):
                     await context.send('No source over the similarity threshold')
 
 
-@client.command(description='Gets a computer-generated waifu from the database',
+@client.command(description='Gets a computer-generated waifu from the database\n'
+                            'Can either get a random ID, or a user-provided one\n'
+                            'between 0 and 11999.',
                 brief='Waifu generation')
-async def animegrill(context, number: int=None):
-    if number is None:
-        number = random.randint(0, 11999)
-    elif number < 0 or number > 11999:
+async def animegrill(context, id: int=None):
+    if id is None:
+        id = random.randint(0, 11999)
+    elif id < 0 or id > 11999:
         await context.send('Invalid Waifu ID!')
         return
 
-    with open('waifugen/results-finbot/finbot-waifu-%s.jpg' % number, 'rb') as f:
+    with open('waifugen/results-finbot/finbot-waifu-%s.jpg' % id, 'rb') as f:
         waifu = f.read()
         waifu = io.BytesIO(waifu)
-        file = File(waifu, filename='finbot-waifu-%s.jpg' % number)
-        await context.send('FinBot Waifu #%s' % number, file=file)
+        file = File(waifu, filename='finbot-waifu-%s.jpg' % id)
+        await context.send('FinBot Waifu #%s' % id, file=file)
 
 
 @client.command(description="Creates an ascii art 'randomart' out of a given string."
