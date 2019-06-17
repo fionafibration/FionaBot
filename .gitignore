@@ -106,3 +106,8 @@ venv.bak/
 config.py
 .idea/
 *.log
+
+waifugen/waifunet.pkl
+waifugen/results-finbot.zip
+waifugen/waifunet.pkl
+nohup.out
