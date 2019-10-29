@@ -544,7 +544,7 @@ async def white(context):
         while True:
             await context.send('Please enter your move in UCI format (eg. e2e4)')
             try:
-                movestr = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=300)
+                movestr = await client.wait_for('message', check=lambda m: (m.author == context.author and m.channel == context.channel), timeout=300)
             except asyncio.TimeoutError:
                 end = True
                 timed_out = True
@@ -643,7 +643,7 @@ async def black(context):
         while True:
             await context.send('Please enter your move in UCI format (eg. e2e4)')
             try:
-                movestr = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=300)
+                movestr = await client.wait_for('message', check=lambda m: (m.author == context.author and m.channel == context.channel), timeout=300)
             except asyncio.TimeoutError:
                 end = True
                 timed_out = True
@@ -727,7 +727,7 @@ async def challenge(context, white: Member):
         while True:
             await context.send('%s, please enter your move in UCI format (eg. e2e4)' % white.mention)
             try:
-                move_str = await client.wait_for('message', check=lambda m: m.author == white, timeout=300)
+                move_str = await client.wait_for('message', check=lambda m: (m.author == white and m.channel == context.channel), timeout=300)
             except asyncio.TimeoutError:
                 end = True
                 timed_out = True
@@ -757,7 +757,7 @@ async def challenge(context, white: Member):
         while True:
             await context.send('%s, please enter your move in UCI format (eg. e2e4)' % black.mention)
             try:
-                move_str = await client.wait_for('message', check=lambda m: m.author == black, timeout=300)
+                move_str = await client.wait_for('message', check=lambda m: (m.author == black and m.channel == context.channel), timeout=300)
             except asyncio.TimeoutError:
                 end = True
                 timed_out = True
