@@ -111,3 +111,7 @@ waifugen/waifunet.pkl
 waifugen/results-finbot.zip
 waifugen/waifunet.pkl
 nohup.out
+waifugen/results-video/fine_503.mp4
+waifugen/results-video/interpolate.mp4
+waifugen/results-video/random_grid_69420.mp4
+waifugen/style_interpolation.py

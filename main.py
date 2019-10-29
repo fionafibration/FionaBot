@@ -26,7 +26,6 @@ import randomart
 import copy
 import astar
 import zlib
-import base64
 from fuzzywuzzy import fuzz
 from discord import *
 from discord.ext.commands import *
@@ -37,6 +36,9 @@ token ='DISCORD TOKEN HERE'
 clever_api_user = 'CLEVERBOT USER HERE'
 clever_api_key = 'CLEVERBOT KEY HERE'
 '''
+
+UCI_REGEX = '([a-h][1-8]){2}(qrknb)?'
+
 
 class TIOSerializer:
     def __init__(self):
@@ -66,16 +68,18 @@ class TIOSerializer:
 
     def add_args(self, args):
         self.add_variable('args', args)
-        
+
     def dump(self):
         return self.bytes
-            
+
+
 try:
     import config
 except ImportError:
     with open('config.py', 'w') as f:
         f.write(default_config)
     sys.exit()
+
 
 class ProperHelp(HelpFormatter):
     async def format(self):
@@ -147,6 +151,8 @@ formatter = ProperHelp()
 client = Bot(command_prefix=config.prefix,
              description='''A bot written by Finianb1 for use in various discord servers.
               Can play chess, roll dice, and track initiative, among other things.''', formatter=formatter)
+
+
 # Change directory to script's directory. Used for opening chess engine and level file.
 
 
@@ -164,7 +170,7 @@ def format_large(number):
 
 def inflate(data):
     decompress = zlib.decompressobj(
-            -zlib.MAX_WBITS  # see above
+        -zlib.MAX_WBITS  # see above
     )
     inflated = decompress.decompress(data)
     inflated += decompress.flush()
@@ -231,7 +237,9 @@ async def on_ready():
     :return:
     """
     async with aiohttp.ClientSession() as session:
-        raw_response = await session.post('https://cleverbot.io/1.0/create', json={'user': config.clever_api_user, 'key': config.clever_api_key, 'nick': 'Fin'})
+        raw_response = await session.post('https://cleverbot.io/1.0/create',
+                                          json={'user': config.clever_api_user, 'key': config.clever_api_key,
+                                                'nick': 'Fin'})
         await raw_response.text()
         await session.close()
     link = utils.oauth_url('464543446187769867', permissions=Permissions.all())
@@ -273,7 +281,8 @@ async def on_message(message):
         await message.channel.send('Seduce me!', file=File('seduce.png'))
 
     if message.content.lower() == 'mirage':
-        await message.channel.send('now dont get me started on the mirage 2000 hahah its so bad like wtf french the best plane they ever made was a flag blown away by the wind it works great actualy but the mirage is so ugly i dont enven now how it can even fly i know a friend is part of the raf he flew three (yes, 3) mirage and the worst was the deux mille i mean its a flying pankace and really how can a french plane work anyway they dont even now how cars work look at renault its so bad right so yes the mirage is pretty shitty right yeah')
+        await message.channel.send(
+            'now dont get me started on the mirage 2000 hahah its so bad like wtf french the best plane they ever made was a flag blown away by the wind it works great actualy but the mirage is so ugly i dont enven now how it can even fly i know a friend is part of the raf he flew three (yes, 3) mirage and the worst was the deux mille i mean its a flying pankace and really how can a french plane work anyway they dont even now how cars work look at renault its so bad right so yes the mirage is pretty shitty right yeah')
 
     if message.content.lower() == 'thatsthejoke.jpg':
         await message.channel.send('THATS THE JOKE', file=File('thatsthejoke.gif'))
@@ -303,7 +312,9 @@ async def clever(context, *message):
     message = ' '.join(message)
 
     async with aiohttp.ClientSession() as session:  # Async HTTP request
-        raw_response = await session.post('https://cleverbot.io/1.0/ask', json={'user': config.clever_api_user, 'key': config.clever_api_key, 'nick': 'Fin', 'text': message})
+        raw_response = await session.post('https://cleverbot.io/1.0/ask',
+                                          json={'user': config.clever_api_user, 'key': config.clever_api_key,
+                                                'nick': 'Fin', 'text': message})
         response = await raw_response.text()  # Take only the data
         response = json.loads(response)  # Parse the JSON into a format we can use
         # This is the JSON path for the price data in USD
@@ -356,25 +367,30 @@ async def xp(context, mention: Member):
 async def top(context):
     with open('users.json', 'r') as f:
         users = json.load(f)
+
     def get_xp(user):
         try:
             return users[str(user.id)]['experience']
         except:
             return 0
+
     def get_level(user):
         try:
             return users[str(user.id)]['level']
         except:
             return 0
+
     if len(context.guild.members) >= 1:
         userList = copy.copy(context.guild.members)
         userList.sort(key=get_xp, reverse=True)
         ranking = ''
         for i in range(10):
             if len(userList[i].display_name) > 20:
-                ranking += '%s. %s...: %s levels, %s xp\n' % (i + 1, userList[i].display_name[:17], get_level(userList[i]), get_xp(userList[i]))
+                ranking += '%s. %s...: %s levels, %s xp\n' % (
+                i + 1, userList[i].display_name[:17], get_level(userList[i]), get_xp(userList[i]))
             else:
-                ranking += '%s. %s: %s levels, %s xp\n' % (i + 1, userList[i].display_name, get_level(userList[i]), get_xp(userList[i]))
+                ranking += '%s. %s: %s levels, %s xp\n' % (
+                i + 1, userList[i].display_name, get_level(userList[i]), get_xp(userList[i]))
         await context.send('Rankings for this server:\n```%s```' % ranking)
 
 
@@ -443,15 +459,16 @@ async def dice(context, *roll):
             await context.send('Result: %s.\n```%s```' % (result, explanation))
 
 
-@client.command(description='Begin dice rolling mode. Until you type \'end\', all messages you type will be interpreted as dice rolls. All malformed dice rolls will be ignored.',
-                brief='Begin dice rolling mode.',
-                aliases=['diemode'])
+@client.command(
+    description='Begin dice rolling mode. Until you type \'end\', all messages you type will be interpreted as dice rolls. All malformed dice rolls will be ignored.',
+    brief='Begin dice rolling mode.',
+    aliases=['diemode'])
 async def dicemode(context):
     timed_out = False
     await context.send('Beginning dice rolling mode...')
     while True:
         try:
-            msg = await client.wait_for('message', check=lambda m: m.author == context.author, timeout = 6000)
+            msg = await client.wait_for('message', check=lambda m: m.author == context.author, timeout=6000)
         except asyncio.TimeoutError:
             break
         else:
@@ -532,14 +549,21 @@ async def white(context):
                 end = True
                 timed_out = True
                 break
+
+            match = regex.search(UCI_REGEX, movestr.content.lower())
+
             if movestr.content.lower() == 'end':
                 end = True
                 break
-            try:
-                chess_game.player_move(movestr.content.lower())
-                break
-            except chessgame.InvalidMoveException as e:
-                await context.send(str(e))
+
+            elif match != None:
+                try:
+                    chess_game.player_move(movestr.content.lower())
+                    break
+
+                except chessgame.InvalidMoveException as e:
+                    await context.send(str(e))
+
         if end:
             break
         await context.send(chess_game.generate_move_digest(user.display_name))
@@ -624,14 +648,20 @@ async def black(context):
                 end = True
                 timed_out = True
                 break
+
+            match = regex.search(UCI_REGEX, movestr.content.lower())
+
             if movestr.content.lower() == 'end':
                 end = True
                 break
-            try:
-                chess_game.player_move(movestr.content.lower())
-                break
-            except chessgame.InvalidMoveException as e:
-                await context.send(str(e))
+
+            elif match != None:
+                try:
+                    chess_game.player_move(movestr.content.lower())
+                    break
+
+                except chessgame.InvalidMoveException as e:
+                    await context.send(str(e))
         if end:
             break
         await context.send(chess_game.generate_move_digest(user.display_name))
@@ -660,9 +690,10 @@ async def black(context):
 
     chess_game.engine.kill()
 
+
 @cooldown(2, 60, BucketType.user)
 @new.command(description='Challenge the mentioned user to a game of chess. To end the game, type \'end\'.',
-                brief='Challenge a person to a game of chess')
+             brief='Challenge a person to a game of chess')
 async def challenge(context, white: Member):
     timed_out = False
 
@@ -779,141 +810,17 @@ async def challenge(context, white: Member):
 
     chess_game.engine.kill()
 
-
-@cooldown(2, 60, BucketType.user)
-@client.command(description='Challenge the mentioned users to a game of chess. To end the game, type \'end\'.',
-                brief='Challenge two people to a game of chess')
-@has_permissions(kick_members=True)
-async def challenge2(context, white: Member, black: Member):
-    timed_out = False
-
-    await context.send('%s and %s, you have been challenged to play each other in a game of chess by %s' % (white.mention, black.mention, context.author.mention))
-
-    flip = random.choice([True, False])
-
-    if flip:
-        white, black = black, white
-
-    with open('users.json') as f:
-        users = json.load(f)
-
-    if str(white.id) not in users:
-        await update_data(users, white)
-    elif str(black.id) not in users:
-        await update_data(users, black)
-
-    white_rating = trueskill.Rating(**users[str(white.id)]['trueskill'])
-
-    black_rating = trueskill.Rating(**users[str(black.id)]['trueskill'])
-
-    chess_game = chessgame.ChessGame()
-
-    file = chess_game.get_png(chessgame.chess.WHITE)
-    file = io.BytesIO(file)
-    file = File(file, filename='board.png')
-    await context.send('Board:', file=file)
-
-    while True:
-        end = False
-
-        # White's move
-        while True:
-            await context.send('%s, please enter your move in UCI format (eg. e2e4)' % white.mention)
-            try:
-                move_str = await client.wait_for('message', check=lambda m: m.author == white, timeout=300)
-            except asyncio.TimeoutError:
-                end = True
-                timed_out = True
-                break
-            if move_str.content.lower() == 'end':
-                end = True
-                break
-            try:
-                chess_game.player_move(move_str.content.lower())
-                break
-            except chessgame.InvalidMoveException as e:
-                await context.send(str(e))
-        if end:
-            white_ended = True
-            break
-        await context.send(chess_game.generate_move_digest(white.display_name))
-        if chess_game.is_finished():
-            break
-
-        # Black's move
-        file = chess_game.get_png(chessgame.chess.BLACK)
-        file = io.BytesIO(file)
-        file = File(file, filename='board.png')
-        await context.send('Board:', file=file)
-        if chess_game.check():
-            await context.send('Black is in check!')
-        while True:
-            await context.send('%s, please enter your move in UCI format (eg. e2e4)' % black.mention)
-            try:
-                move_str = await client.wait_for('message', check=lambda m: m.author == black, timeout=300)
-            except asyncio.TimeoutError:
-                end = True
-                timed_out = True
-                break
-            if move_str.content.lower() == 'end':
-                end = True
-                break
-            try:
-                chess_game.player_move(move_str.content.lower())
-                break
-            except chessgame.InvalidMoveException as e:
-                await context.send(str(e))
-        if end:
-            black_ended = True
-            break
-        await context.send(chess_game.generate_move_digest(black.display_name))
-        if chess_game.is_finished():
-            break
-
-        file = chess_game.get_png(chessgame.chess.WHITE)
-        file = io.BytesIO(file)
-        file = File(file, filename='board.png')
-        await context.send('Board:', file=file)
-
-    if chess_game.result() == '1-0' or black_ended:
-        white_rating, black_rating = trueskill.rate_1vs1(white_rating, black_rating)
-    elif chess_game.result() == '0-1' or white_ended:
-        black_rating, white_rating = trueskill.rate_1vs1(black_rating, white_rating)
-
-    with open('users.json') as f:
-        users = json.load(f)
-        users[str(white.id)]['trueskill'] = {'mu': white_rating.mu, 'sigma': white_rating.sigma}
-        users[str(black.id)]['trueskill'] = {'mu': black_rating.mu, 'sigma': black_rating.sigma}
-
-    if timed_out:
-        await context.send('Game timed out. Next time please make a move within 5 minutes.')
-
-    date_string = f"{datetime.date.today():%Y.%m.%d}"
-    pgn = chess_game.get_pgn('Chess Game', 'Discord', date_string, white.display_name, black.display_name)
-
-    embed = Embed(title="Chess Game Results", colour=Colour(0xff00), description="```%s```" % pgn)
-
-    embed.set_author(name="Fin Bot", icon_url="https://tinyurl.com/y8p7a8px")
-
-    embed.add_field(name="White", value='%s\nRating: %0.3f' % (white.display_name, white_rating.mu))
-    embed.add_field(name="Black", value='%s\nRating: %0.3f' % (black.display_name, black_rating.mu))
-    embed.add_field(name="Final Score", value=chess_game.result())
-
-    await context.send(embed=embed)
-
-    chess_game.engine.kill()
-
-
-@client.command(description="Start a new initiative tracker session. Initiative tracking uses three commands: 'next', 'add', and 'remove.'\n"
-                            "All commands will use the number ID for creatures.\n"
-                            "Next simply increments the turn to move and deals with any effects that may need to expire.\n"
-                            "Add takes four arguments: The creature to apply the effect to, the creature who's applying the effect, the length in rounds, and the effect name.\n"
-                            "E.G. 'add 2 3 4 Stun' adds Stun to creature 2 for 4 rounds, and the effect will deplete on creature 3's turn.\n"
-                            "Remove takes the number of the creature and the number of the effect.\n"
-                            "Type 'end' to end the session",
-                brief='Initiative tracking',
-                name='initiative',
-                aliases=['init'])
+@client.command(
+    description="Start a new initiative tracker session. Initiative tracking uses three commands: 'next', 'add', and 'remove.'\n"
+                "All commands will use the number ID for creatures.\n"
+                "Next simply increments the turn to move and deals with any effects that may need to expire.\n"
+                "Add takes four arguments: The creature to apply the effect to, the creature who's applying the effect, the length in rounds, and the effect name.\n"
+                "E.G. 'add 2 3 4 Stun' adds Stun to creature 2 for 4 rounds, and the effect will deplete on creature 3's turn.\n"
+                "Remove takes the number of the creature and the number of the effect.\n"
+                "Type 'end' to end the session",
+    brief='Initiative tracking',
+    name='initiative',
+    aliases=['init'])
 async def initiative_command(context, *args):
     try:
         assert len(args) % 2 == 0
@@ -963,8 +870,9 @@ async def initiative_command(context, *args):
             await context.send('Initiative tracking session timed out.')
 
 
-@client.command(description="Attach a text file containing the markov text to be ingested. Takes 1 argument, the number of sentences to generate.",
-                brief="Markov chain text generation.")
+@client.command(
+    description="Attach a text file containing the markov text to be ingested. Takes 1 argument, the number of sentences to generate.",
+    brief="Markov chain text generation.")
 async def markov(context, num_sentences: int = 8):
     file = context.message.attachments[0]
     if file.size > 8000000:
@@ -998,7 +906,8 @@ async def markov(context, num_sentences: int = 8):
                 brief="Fetch a random joke.")
 async def jokes(context):
     async with aiohttp.ClientSession() as session:  # Async HTTP request
-        raw_response = await session.post('http://api.icndb.com/jokes/random?firstName=Fin&lastName=Bot&escape=javascript')
+        raw_response = await session.post(
+            'http://api.icndb.com/jokes/random?firstName=Fin&lastName=Bot&escape=javascript')
         response = await raw_response.text()  # Take only the data
         response = json.loads(response)  # Parse the JSON into a format we can use
     joke = response['value']['joke']
@@ -1021,8 +930,8 @@ async def pickmeup(context):
 @client.command(description="Prune last N messages from a channel",
                 brief="Prune messages.")
 @has_permissions(manage_messages=True)
-async def prune(context, amount: int=1):
-    await context.message.channel.purge(limit = amount)
+async def prune(context, amount: int = 1):
+    await context.message.channel.purge(limit=amount)
 
 
 @client.command(description="Inspects the source code for a command. E.G. 'f?source challenge'",
@@ -1048,11 +957,10 @@ async def source(context, *command):
         await context.send(source_formatted)
 
 
-
 @client.command(description="Search an image link or image attachment for a source from saucenao, "
                             "Optionally add a similarity percentage threshold",
                 brief="Search an image for a source on saucenao.")
-async def sauce(context, link=None, similarity: int=80):
+async def sauce(context, link=None, similarity: int = 80):
     """
     Reverse image search using saucenao
     Thanks to https://github.com/tailoric/image-search-cog/blob/master/image_search.py for source
@@ -1091,7 +999,7 @@ async def sauce(context, link=None, similarity: int=80):
                             'Can either get a random ID, or a user-provided one\n'
                             'between 0 and 11999.',
                 brief='Waifu generation')
-async def animegrill(context, id: int=None):
+async def animegrill(context, id: int = None):
     if id is None:
         id = random.randint(0, 11999)
     elif id < 0 or id > 11999:
@@ -1171,7 +1079,6 @@ async def code(context):
 @code.command(description="Search the language database for a certain language.",
               brief="Search the language DB for a language")
 async def search(context, *langname):
-
     if not langname:
         await context.send('Need a language name to search!')
         return
@@ -1200,7 +1107,7 @@ async def search(context, *langname):
                           "You can specify a list of command line arguments you'd like to be provided to the "
                           "language's interpreter",
               brief="Run code in a language.")
-async def run(context, language, ask_input: bool=False, *args):
+async def run(context, language, ask_input: bool = False, *args):
     async with aiohttp.ClientSession() as session:
         response = await session.get('https://tio.run/languages.json')
 
@@ -1248,7 +1155,8 @@ async def run(context, language, ask_input: bool=False, *args):
         byte_data = tio.dump()
 
         async with aiohttp.ClientSession() as session:
-            response = await session.post('https://tio.run/cgi-bin/static/fb67788fd3d1ebf92e66b295525335af-run', data=zlib.compress(byte_data, 9)[2:-4])
+            response = await session.post('https://tio.run/cgi-bin/static/fb67788fd3d1ebf92e66b295525335af-run',
+                                          data=zlib.compress(byte_data, 9)[2:-4])
 
             response_data = zlib.decompress((await response.read())[10:], wbits=-15)
 
@@ -1256,7 +1164,8 @@ async def run(context, language, ask_input: bool=False, *args):
 
         split_data = regex.split(regex.escape(split), response_data)
 
-        await context.send('\n'.join(['```%s```' % piece.decode('utf-8', errors='replace') for piece in split_data if piece.decode('utf-8', errors='replace')]))
+        await context.send('\n'.join(['```%s```' % piece.decode('utf-8', errors='replace') for piece in split_data if
+                                      piece.decode('utf-8', errors='replace')]))
 
     except:
         await context.send('Error running program!')
