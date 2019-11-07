@@ -5,12 +5,13 @@
 ChessGame: Internal module for use in the FinBot discord bot's chess functions.
 """
 import chess
-import chess.uci
+import chess.engine
 import chess.pgn
 import chess.svg
 import cairosvg
 import os
-
+import worstfish
+import datetime
 
 class InvalidMoveException(Exception):
     def __init__(self, *args, **kwargs):
@@ -18,15 +19,14 @@ class InvalidMoveException(Exception):
 
 
 class ChessGame:
-    def __init__(self):
-        self.engine = chess.uci.popen_engine("stockfish_10_x64_popcnt") if os.name == 'nt' else chess.uci.popen_engine('./stockfish_10_x64_modern')
-        self.engine.uci()
+    def __init__(self, difficulty=True):
+        self.engine = chess.engine.SimpleEngine.popen_uci("stockfish_10_x64_popcnt" if os.name == 'nt' else './stockfish_10_x64_modern')
         self.board = chess.Board()
-        self.engine.position(self.board)
-        self.engine.ucinewgame()
+        self.difficulty = difficulty
+        if not self.difficulty:
+            self.worstfish = worstfish.WorstFish(self.engine)
 
     def player_move(self, movestr):
-        self.engine.position(self.board)
         try:
             self.move = chess.Move.from_uci(movestr)
         except ValueError:
@@ -37,10 +37,11 @@ class ChessGame:
             raise InvalidMoveException(self.print_possible_errors(self.move))
 
     def ai_move(self):
-        self.engine.position(self.board)
-        self.possible_moves = self.board.legal_moves
-        self.response = self.engine.go(searchmoves=self.possible_moves, depth=20)
-        self.board.push(self.response[0])
+        if self.difficulty:
+            response = self.engine.analyse(self.board, chess.engine.Limit(depth=20))
+            self.board.push(response.move)
+        else:
+            self.board.push(self.worstfish.get_move(self.board))
 
     def generate_move_digest(self, name):
         self.move = self.board.pop()
@@ -125,7 +126,7 @@ class ChessGame:
     def check(self):
         return self.board.is_check()
 
-    def get_pgn(self, event='Chess Game', site='The Internet', date="2018", white="Player", black="Stockfish 9"):
+    def get_pgn(self, event='Chess Game', site='The Internet', date="1970 Epoch Game", white="Player", black="Stockfish 9"):
         self.pgn = chess.pgn.Game.from_board(self.board)
         self.pgn.headers["Event"] = event
         self.pgn.headers["Site"] = site

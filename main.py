@@ -145,15 +145,11 @@ class ProperHelp(HelpFormatter):
         self._paginator.add_line(ending_note)
         return self._paginator.pages
 
-
 formatter = ProperHelp()
 
 client = Bot(command_prefix=config.prefix,
              description='''A bot written by Finianb1 for use in various discord servers.
               Can play chess, roll dice, and track initiative, among other things.''', formatter=formatter)
-
-
-# Change directory to script's directory. Used for opening chess engine and level file.
 
 
 def format_large(number):
@@ -516,7 +512,7 @@ async def new(context):
 @new.command(description='Starts a game of chess with the bot. To end a game of chess, type \'end\' instead of '
                          'entering your move. You must enter your move within 5 minutes or the game will time out.',
              brief='Start a game of chess as white.')
-async def white(context):
+async def white(context, easymode: bool=False):
     """
     Command to start a new game of chess vs AI as white
 
@@ -529,7 +525,7 @@ async def white(context):
 
     user = context.message.author
 
-    chess_game = chessgame.ChessGame()
+    chess_game = chessgame.ChessGame(difficulty=not easymode)
 
     await context.send('Starting new game as white.')
 
@@ -600,14 +596,14 @@ async def white(context):
 
     await context.send(embed=embed)
 
-    chess_game.engine.kill()
+    chess_game.engine.close()
 
 
 @cooldown(2, 60, BucketType.user)
 @new.command(description='Starts a game of chess with the bot. To end a game of chess, type \'end\' instead of '
                          'entering your move. You must enter your move within 5 minutes or the game will time out.',
              brief='Start a game of chess as white.')
-async def black(context):
+async def black(context, easymode: bool=False):
     """
     Command to start a new game of chess vs AI as black
 
@@ -618,7 +614,7 @@ async def black(context):
 
     user = context.message.author
 
-    chess_game = chessgame.ChessGame()
+    chess_game = chessgame.ChessGame(difficulty=not easymode)
 
     await context.send('Starting new game as black.')
 
@@ -688,7 +684,7 @@ async def black(context):
 
     await context.send(embed=embed)
 
-    chess_game.engine.kill()
+    chess_game.engine.close()
 
 
 @cooldown(2, 60, BucketType.user)
@@ -808,7 +804,7 @@ async def challenge(context, white: Member):
 
     await context.send(embed=embed)
 
-    chess_game.engine.kill()
+    chess_game.engine.close()
 
 @client.command(
     description="Start a new initiative tracker session. Initiative tracking uses three commands: 'next', 'add', and 'remove.'\n"
