@@ -80,15 +80,13 @@ except ImportError:
         f.write(default_config)
     sys.exit()
 
-
+"""
 class ProperHelp(HelpFormatter):
     async def format(self):
-        """
         Handles the actual behaviour involved with formatting.
         To change the behaviour, this method should be overridden.
 
         :return: List: A paginated value of the help command
-        """
         self._paginator = Paginator()
 
         # we need a padding of ~80 or so
@@ -144,12 +142,21 @@ class ProperHelp(HelpFormatter):
         ending_note = self.get_ending_note()
         self._paginator.add_line(ending_note)
         return self._paginator.pages
+"""
 
-formatter = ProperHelp()
+
+class ReplaceMentHelpCommand(DefaultHelpCommand):
+    pass
+
+
+
+#formatter = ProperHelp()
 
 client = Bot(command_prefix=config.prefix,
              description='''A bot written by Finianb1 for use in various discord servers.
-              Can play chess, roll dice, and track initiative, among other things.''', formatter=formatter)
+              Can play chess, roll dice, and track initiative, among other things.''')
+
+print(client.help_command)
 
 
 def format_large(number):
@@ -302,7 +309,7 @@ async def on_message(message):
     await client.process_commands(message)
 
 
-@client.command(description='Query cleverbot.',
+@client.command(description='Query cleverbot. ',
                 brief='Query cleverbot.')
 async def clever(context, *message):
     message = ' '.join(message)
@@ -320,7 +327,7 @@ async def clever(context, *message):
         await context.send('Error accessing cleverbot.')
 
 
-@client.command(description='Check a user\'s level. This command takes one mention.',
+@client.command(description='Check a user\'s level. This command takes one mention. ',
                 brief='Check a user\'s level.')
 async def level(context, mention: Member):
     if mention.bot:
@@ -339,7 +346,7 @@ async def level(context, mention: Member):
     await context.send('%s is level %s!' % (mention.display_name, users[str(mention.id)]['level']))
 
 
-@client.command(description='Check a user\'s XP. This command takes one mention.',
+@client.command(description='Check a user\'s XP. This command takes one mention. ',
                 brief='Check a user\'s XP.')
 async def xp(context, mention: Member):
     if mention.bot:
@@ -391,7 +398,7 @@ async def top(context):
 
 
 @client.command(name='8ball',
-                description='Answers a yes/no question.',
+                description='Answers a yes/no question. ',
                 brief='Answers from the beyond.',
                 aliases=['eight_ball', 'eightball', '8-ball'], )
 async def eight_ball(context):
@@ -430,7 +437,7 @@ async def eight_ball(context):
 
 
 # Evaluates a dice roll in critdice format. See https://www.critdice.com/how-to-roll-dice/
-@client.command(description='Roll dice using syntax as explained at https://tinyurl.com/pydice',
+@client.command(description='Roll dice using syntax as explained at https://tinyurl.com/pydice ',
                 brief='Roll dice.',
                 aliases=['die'])
 async def dice(context, *roll):
@@ -456,8 +463,8 @@ async def dice(context, *roll):
 
 
 @client.command(
-    description='Begin dice rolling mode. Until you type \'end\', all messages you type will be interpreted as dice rolls. All malformed dice rolls will be ignored.',
-    brief='Begin dice rolling mode.',
+    description='Begin dice rolling mode. Until you type \'end\', all messages you type will be interpreted as dice rolls. All malformed dice rolls will be ignored. ',
+    brief='Begin dice rolling mode. ',
     aliases=['diemode'])
 async def dicemode(context):
     timed_out = False
@@ -495,7 +502,7 @@ async def chess(context):
 
 
 @chess.group(description='Starts a game of chess with the bot. To end a game of chess, type \'end\' instead of '
-                         'entering your move. You must enter your move within 5 minutes or the game will time out.',
+                         'entering your move. You must enter your move within 5 minutes or the game will time out. ',
              brief='Start a game of chess.')
 async def new(context):
     """
@@ -510,8 +517,8 @@ async def new(context):
 
 @cooldown(2, 60, BucketType.user)
 @new.command(description='Starts a game of chess with the bot. To end a game of chess, type \'end\' instead of '
-                         'entering your move. You must enter your move within 5 minutes or the game will time out.',
-             brief='Start a game of chess as white.')
+                         'entering your move. You must enter your move within 5 minutes or the game will time out. ',
+             brief='Start a game of chess as white. ')
 async def white(context, easymode: bool=False):
     """
     Command to start a new game of chess vs AI as white
@@ -601,7 +608,7 @@ async def white(context, easymode: bool=False):
 
 @cooldown(2, 60, BucketType.user)
 @new.command(description='Starts a game of chess with the bot. To end a game of chess, type \'end\' instead of '
-                         'entering your move. You must enter your move within 5 minutes or the game will time out.',
+                         'entering your move. You must enter your move within 5 minutes or the game will time out. ',
              brief='Start a game of chess as white.')
 async def black(context, easymode: bool=False):
     """
@@ -688,7 +695,7 @@ async def black(context, easymode: bool=False):
 
 
 @cooldown(2, 60, BucketType.user)
-@new.command(description='Challenge the mentioned user to a game of chess. To end the game, type \'end\'.',
+@new.command(description='Challenge the mentioned user to a game of chess. To end the game, type \'end\'. ',
              brief='Challenge a person to a game of chess')
 async def challenge(context, white: Member):
     timed_out = False
@@ -867,7 +874,7 @@ async def initiative_command(context, *args):
 
 
 @client.command(
-    description="Attach a text file containing the markov text to be ingested. Takes 1 argument, the number of sentences to generate.",
+    description="Attach a text file containing the markov text to be ingested. Takes 1 argument, the number of sentences to generate. ",
     brief="Markov chain text generation.")
 async def markov(context, num_sentences: int = 8):
     file = context.message.attachments[0]
@@ -898,8 +905,8 @@ async def markov(context, num_sentences: int = 8):
     await context.send('Output:\n```%s```' % sentences)
 
 
-@client.command(description="Fetch a random joke.",
-                brief="Fetch a random joke.")
+@client.command(description="Fetch a random joke. ",
+                brief="Fetch a random joke. ")
 async def jokes(context):
     async with aiohttp.ClientSession() as session:  # Async HTTP request
         raw_response = await session.post(
@@ -912,8 +919,8 @@ async def jokes(context):
     await context.send(joke)
 
 
-@client.command(description="Send a random pickup line.",
-                brief="Send a random pickup line.")
+@client.command(description="Send a random pickup line. ",
+                brief="Send a random pickup line. ")
 async def pickmeup(context):
     async with aiohttp.ClientSession() as session:  # Async HTTP request
         raw_response = await session.get('http://pebble-pickup.herokuapp.com/tweets/random')
@@ -923,15 +930,15 @@ async def pickmeup(context):
     await context.send(joke)
 
 
-@client.command(description="Prune last N messages from a channel",
-                brief="Prune messages.")
+@client.command(description="Prune last N messages from a channel ",
+                brief="Prune messages. ")
 @has_permissions(manage_messages=True)
 async def prune(context, amount: int = 1):
     await context.message.channel.purge(limit=amount)
 
 
-@client.command(description="Inspects the source code for a command. E.G. 'f?source challenge'",
-                brief="Inspect the source code for a command.")
+@client.command(description="Inspects the source code for a command. E.G. 'f?source challenge' ",
+                brief="Inspect the source code for a command. ")
 async def source(context, *command):
     """
     Inspects the source code of a command
@@ -954,7 +961,7 @@ async def source(context, *command):
 
 
 @client.command(description="Search an image link or image attachment for a source from saucenao, "
-                            "Optionally add a similarity percentage threshold",
+                            "Optionally add a similarity percentage threshold ",
                 brief="Search an image for a source on saucenao.")
 async def sauce(context, link=None, similarity: int = 80):
     """
@@ -1009,10 +1016,10 @@ async def animegrill(context, id: int = None):
         await context.send('FinBot Waifu #%s' % id, file=file)
 
 
-@client.command(description="Creates an ascii art 'randomart' out of a given string."
-                            "Simply send the command and then type your text once prompted."
-                            "Text will be sanitized of all non-word characters, uppercased,"
-                            "and then will be used to generate a unique randomart for that"
+@client.command(description="Creates an ascii art 'randomart' out of a given string. "
+                            "Simply send the command and then type your text once prompted. "
+                            "Text will be sanitized of all non-word characters, uppercased, "
+                            "and then will be used to generate a unique randomart for that "
                             "phrase."
                             "This is an example of a commitment scheme.",
                 brief="Creates a randomart out of text.")
