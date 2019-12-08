@@ -38,7 +38,7 @@ class ChessGame:
 
     def ai_move(self):
         if self.difficulty:
-            response = self.engine.analyse(self.board, chess.engine.Limit(depth=20))
+            response = self.engine.play(self.board, chess.engine.Limit())
             self.board.push(response.move)
         else:
             self.board.push(self.worstfish.get_move(self.board))
