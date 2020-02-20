@@ -20,7 +20,8 @@ class InvalidMoveException(Exception):
 
 class ChessGame:
     def __init__(self, difficulty=True):
-        self.engine = chess.engine.SimpleEngine.popen_uci("stockfish_10_x64_popcnt" if os.name == 'nt' else './stockfish_10_x64_modern')
+        self.engine = chess.engine.SimpleEngine.popen_uci("stockfish_20011801_x64_modern.exe" if os.name == 'nt' else
+                                                          './stockfish_20011801_x64_modern')
         self.board = chess.Board()
         self.difficulty = difficulty
         if not self.difficulty:
