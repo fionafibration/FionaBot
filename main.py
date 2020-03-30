@@ -408,12 +408,12 @@ async def on_message(message):
     await client.process_commands(message)
 
 
-
 @client.command(description='Grab an invite. Permissions will be all.',
                 brief='Get the bot invite link')
 async def invitelink(context):
     link = utils.oauth_url('464543446187769867', permissions=Permissions.all())
     await context.send(f"Invite Link:\n`{link}`")
+
 
 @client.command(description='Query cleverbot. ',
                 brief='Query cleverbot.')
