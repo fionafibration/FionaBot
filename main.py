@@ -13,7 +13,7 @@ import json
 import io
 import regex
 import inspect
-import chessgame
+# import chessgame
 import initiative
 import rolldice
 import trueskill
@@ -408,6 +408,13 @@ async def on_message(message):
     await client.process_commands(message)
 
 
+
+@client.command(description='Grab an invite. Permissions will be all.',
+                brief='Get the bot invite link')
+async def invitelink(context):
+    link = utils.oauth_url('464543446187769867', permissions=Permissions.all())
+    await context.send(f"Invite Link:\n`{link}`")
+
 @client.command(description='Query cleverbot. ',
                 brief='Query cleverbot.')
 async def clever(context, *message):
@@ -647,7 +654,7 @@ async def white(context, easymode: bool = False):
             await context.send('Please enter your move in UCI format (eg. e2e4)')
             try:
                 movestr = await client.wait_for('message', check=lambda m: (
-                        m.author == context.author and m.channel == context.channel), timeout=300)
+                    m.author == context.author and m.channel == context.channel), timeout=300)
             except asyncio.TimeoutError:
                 end = True
                 timed_out = True
@@ -747,7 +754,7 @@ async def black(context, easymode: bool = False):
             await context.send('Please enter your move in UCI format (eg. e2e4)')
             try:
                 movestr = await client.wait_for('message', check=lambda m: (
-                        m.author == context.author and m.channel == context.channel), timeout=300)
+                    m.author == context.author and m.channel == context.channel), timeout=300)
             except asyncio.TimeoutError:
                 end = True
                 timed_out = True
