@@ -388,6 +388,9 @@ async def on_message(message):
 
     if message.content.lower() == 'thatsthejoke.jpg':
         await message.channel.send('THATS THE JOKE', file=File('thatsthejoke.gif'))
+	
+	if message.content.lower() == 'z.png':
+		await message.channel.send('Everything is Fine!', file=File('Z.png'))
 
     if message.content.lower() == '@someone':
         server = message.guild
