@@ -252,7 +252,7 @@ class ReplacementHelpCommand(HelpCommand):
 
 
 client = Bot(command_prefix=config.prefix,
-             description='''A bot written by Finianb1 for use in various discord servers.
+             description='''A bot written by fiona#1729 for use in various discord servers.
               Can play chess, roll dice, and track initiative, among other things.''')
 
 client.help_command = ReplacementHelpCommand()
