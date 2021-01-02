@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 """
-ChessGame: Internal module for use in the FinBot discord bot's chess functions.
+ChessGame: Internal module for use in the FionaBot discord bot's chess functions.
 """
 import chess
 import chess.engine

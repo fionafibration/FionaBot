@@ -19,14 +19,14 @@ def main():
     Gs.print_layers()
 
     for i in range(0, 12000):
-        if not os.path.exists('./%s/finbot-waifu-%s.jpg' % (config.result_dir, i)):
+        if not os.path.exists('./%s/fionabot-waifu-%s.jpg' % (config.result_dir, i)):
             print("Image number:", i)
             rnd = np.random.RandomState(None)
             latents = rnd.randn(1, Gs.input_shape[1])
             fmt = dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True)
             images = Gs.run(latents, None, truncation_psi=0.55, randomize_noise=True, output_transform=fmt)
             os.makedirs(config.result_dir, exist_ok=True)
-            png_filename = os.path.join(config.result_dir, 'finbot-waifu-'+str(i)+'.png')
+            png_filename = os.path.join(config.result_dir, 'fionabot-waifu-'+str(i)+'.png')
             PIL.Image.fromarray(images[0], 'RGB').save(png_filename)
 
 if __name__ == "__main__":

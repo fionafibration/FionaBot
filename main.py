@@ -13,7 +13,7 @@ import json
 import io
 import regex
 import inspect
-# import chessgame
+import chessgame
 import initiative
 import rolldice
 import trueskill
@@ -390,7 +390,7 @@ async def on_message(message):
         await message.channel.send('THATS THE JOKE', file=File('thatsthejoke.gif'))
 	
     if message.content.lower() in ['it\'s fine', 'its fine', 'i\'m fine', 'im fine', 'i am fine']:
-	await message.channel.send('Everything is Fine!', file=File('Z.png'))
+        await message.channel.send('Everything is Fine!', file=File('Z.png'))
 
     if message.content.lower() == '@someone':
         server = message.guild
@@ -1125,11 +1125,11 @@ async def animegrill(context, id: int = None):
         await context.send('Invalid Waifu ID!')
         return
 
-    with open('waifugen/results-finbot/finbot-waifu-%s.jpg' % id, 'rb') as f:
+    with open('waifugen/results-fionabot/finbot-waifu-%s.jpg' % id, 'rb') as f:
         waifu = f.read()
         waifu = io.BytesIO(waifu)
         file = File(waifu, filename='finbot-waifu-%s.jpg' % id)
-        await context.send('FinBot Waifu #%s' % id, file=file)
+        await context.send('FionaBot Waifu #%s' % id, file=file)
 
 
 @client.command(description="Creates an ascii art 'randomart' out of a given string. "
@@ -1150,7 +1150,7 @@ async def art(context):
 
     hex = hashlib.sha3_256(text.encode('utf-8')).hexdigest()
 
-    randomart_str = randomart.randomart(hex, 'FINBOT')
+    randomart_str = randomart.randomart(hex, 'FIONABOT')
 
     await context.send('Your art is:\n```%s```' % randomart_str)
 
