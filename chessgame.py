@@ -127,7 +127,7 @@ class ChessGame:
     def check(self):
         return self.board.is_check()
 
-    def get_pgn(self, event='Chess Game', site='The Internet', date="1970 Epoch Game", white="Player", black="Stockfish 9"):
+    def get_pgn(self, event='Chess Game', site='The Internet', date="1970 Epoch Game", white="Player", black="Stockfish 12"):
         self.pgn = chess.pgn.Game.from_board(self.board)
         self.pgn.headers["Event"] = event
         self.pgn.headers["Site"] = site

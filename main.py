@@ -341,7 +341,7 @@ async def on_ready():
     async with aiohttp.ClientSession() as session:
         raw_response = await session.post('https://cleverbot.io/1.0/create',
                                           json={'user': config.clever_api_user, 'key': config.clever_api_key,
-                                                'nick': 'Fin'})
+                                                'nick': 'Fiona'})
         await raw_response.text()
         await session.close()
     link = utils.oauth_url('464543446187769867', permissions=Permissions.all())
@@ -426,7 +426,7 @@ async def clever(context, *message):
     async with aiohttp.ClientSession() as session:  # Async HTTP request
         raw_response = await session.post('https://cleverbot.io/1.0/ask',
                                           json={'user': config.clever_api_user, 'key': config.clever_api_key,
-                                                'nick': 'Fin', 'text': message})
+                                                'nick': 'Fiona', 'text': message})
         response = await raw_response.text()  # Take only the data
         response = json.loads(response)  # Parse the JSON into a format we can use
         # This is the JSON path for the price data in USD
@@ -689,7 +689,7 @@ async def white(context, easymode: bool = False):
         if chess_game.check():
             await context.send('Black is in check!')
         chess_game.ai_move()
-        await context.send(chess_game.generate_move_digest('Fin Bot'))
+        await context.send(chess_game.generate_move_digest('FionaBot'))
         file = chess_game.get_png(chessgame.chess.WHITE)
         file = io.BytesIO(file)
         file = File(file, filename='board.png')
@@ -701,14 +701,14 @@ async def white(context, easymode: bool = False):
         await context.send('Game timed out. Next time please make a move within 5 minutes.')
 
     date_string = f"{datetime.date.today():%Y.%m.%d}"
-    pgn = chess_game.get_pgn('Chess Game', 'Discord', date_string, user.display_name, "Fin Bot")
+    pgn = chess_game.get_pgn('Chess Game', 'Discord', date_string, user.display_name, "FionaBot")
 
     embed = Embed(title="Chess Game Results", colour=Colour(0xff00), description="```%s```" % pgn)
 
-    embed.set_author(name="Fin Bot", icon_url="https://tinyurl.com/y8p7a8px")
+    embed.set_author(name="FionaBot", icon_url="https://tinyurl.com/y8p7a8px")
 
     embed.add_field(name="Human Player: White", value=context.author.display_name)
-    embed.add_field(name="Bot Player: Black", value="Fin Bot")
+    embed.add_field(name="Bot Player: Black", value="FionaBot")
     embed.add_field(name="Final Score", value=chess_game.result())
 
     await context.send(embed=embed)
@@ -744,7 +744,7 @@ async def black(context, easymode: bool = False):
         if chess_game.check():
             await context.send('White is in check!')
         chess_game.ai_move()
-        await context.send(chess_game.generate_move_digest('Fin Bot'))
+        await context.send(chess_game.generate_move_digest('FionaBot'))
         file = chess_game.get_png(chessgame.chess.BLACK)
         file = io.BytesIO(file)
         file = File(file, filename='board.png')
@@ -790,14 +790,14 @@ async def black(context, easymode: bool = False):
         await context.send('Game timed out. Next time please make a move within 5 minutes.')
 
     date_string = f"{datetime.date.today():%Y.%m.%d}"
-    pgn = chess_game.get_pgn('Chess Game', 'Discord', date_string, user.display_name, "Fin Bot")
+    pgn = chess_game.get_pgn('Chess Game', 'Discord', date_string, user.display_name, "FionaBot")
 
     embed = Embed(title="Chess Game Results", colour=Colour(0xff00), description="```%s```" % pgn)
 
-    embed.set_author(name="Fin Bot", icon_url="https://tinyurl.com/y8p7a8px")
+    embed.set_author(name="FionaBot", icon_url="https://tinyurl.com/y8p7a8px")
 
     embed.add_field(name="Human Player: Black", value=context.author.display_name)
-    embed.add_field(name="Bot Player: White", value="Fin Bot")
+    embed.add_field(name="Bot Player: White", value="FionaBot")
     embed.add_field(name="Final Score", value=chess_game.result())
 
     await context.send(embed=embed)
@@ -918,7 +918,7 @@ async def challenge(context, white: Member):
 
     embed = Embed(title="Chess Game Results", colour=Colour(0xff00), description="```%s```" % pgn)
 
-    embed.set_author(name="Fin Bot", icon_url="https://tinyurl.com/y8p7a8px")
+    embed.set_author(name="FionaBot", icon_url="https://tinyurl.com/y8p7a8px")
 
     embed.add_field(name="White", value='%s\nRating: %0.3f' % (white.display_name, white_rating.mu))
     embed.add_field(name="Black", value='%s\nRating: %0.3f' % (black.display_name, black_rating.mu))
@@ -1026,7 +1026,7 @@ async def markov(context, num_sentences: int = 8):
 async def jokes(context):
     async with aiohttp.ClientSession() as session:  # Async HTTP request
         raw_response = await session.post(
-            'http://api.icndb.com/jokes/random?firstName=Fin&lastName=Bot&escape=javascript')
+            'http://api.icndb.com/jokes/random?firstName=Fiona&lastName=Bot&escape=javascript')
         response = await raw_response.text()  # Take only the data
         response = json.loads(response)  # Parse the JSON into a format we can use
     joke = response['value']['joke']
